@@ -48,7 +48,12 @@ final class AttentionStore: ObservableObject {
         guard let item else { return "📅 予定なし" }
         let minutes = item.minutesRemaining(from: now)
         if minutes <= 0 {
-            return "\(item.source.emoji) \(item.title) 開始"
+            // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
+            let elapsed = -minutes
+            if elapsed == 0 {
+                return "\(item.source.emoji) \(item.title) 開始"
+            }
+            return "\(item.source.emoji) \(item.title) 開始から\(elapsed)分"
         }
         return "\(item.source.emoji) 次の予定まで\(minutes)分"
     }
