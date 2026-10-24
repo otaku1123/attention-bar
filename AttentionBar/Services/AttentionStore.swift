@@ -7,7 +7,7 @@ final class AttentionStore: ObservableObject {
     @Published private(set) var item: AttentionItem?
     @Published private(set) var now = Date()
 
-    private let service = AttentionService()
+    private let service = AttentionService(providers: [CalendarProvider()])
     private var timer: AnyCancellable?
 
     init() {
@@ -22,8 +22,8 @@ final class AttentionStore: ObservableObject {
 
     func load() async {
         let items = await service.fetchItems()
-        // 将来的には PriorityEngine で並べ替える。現時点では priority の小さい順で先頭を採用。
-        item = items.min { $0.priority < $1.priority }
+        // 将来的には PriorityEngine で並べ替える。現時点では priority の小さい順、同値なら dueAt の早い順で先頭を採用。
+        item = items.min { ($0.priority, $0.dueAt) < ($1.priority, $1.dueAt) }
     }
 
     var menuBarTitle: String {
