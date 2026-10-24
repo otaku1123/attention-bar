@@ -29,7 +29,7 @@ final class CalendarProvider: AttentionProvider {
         return store.events(matching: predicate)
             .filter { event in
                 !event.isAllDay
-                    && event.startDate > now
+                    && event.endDate > now  // 進行中の予定も含める（表示を残すかは AttentionStore が判断）
                     && event.status != .canceled
                     && !isDeclined(event)
             }
