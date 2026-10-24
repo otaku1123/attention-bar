@@ -20,4 +20,11 @@ struct AttentionService {
         }
         return items
     }
+
+    /// いずれかの Provider でデータが変わったときに onChange を呼ぶ。
+    func observeChanges(_ onChange: @escaping () -> Void) {
+        for provider in providers {
+            provider.observeChanges(onChange)
+        }
+    }
 }

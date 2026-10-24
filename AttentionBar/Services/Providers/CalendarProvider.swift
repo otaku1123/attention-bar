@@ -9,9 +9,26 @@ enum CalendarProviderError: Error {
 final class CalendarProvider: AttentionProvider {
     private let store = EKEventStore()
     private let lookahead: TimeInterval
+    private var changeObserver: NSObjectProtocol?
 
     init(lookahead: TimeInterval = 24 * 60 * 60) {
         self.lookahead = lookahead
+    }
+
+    deinit {
+        if let changeObserver {
+            NotificationCenter.default.removeObserver(changeObserver)
+        }
+    }
+
+    func observeChanges(_ onChange: @escaping () -> Void) {
+        changeObserver = NotificationCenter.default.addObserver(
+            forName: .EKEventStoreChanged,
+            object: store,
+            queue: .main
+        ) { _ in
+            onChange()
+        }
     }
 
     func fetchItems() async throws -> [AttentionItem] {

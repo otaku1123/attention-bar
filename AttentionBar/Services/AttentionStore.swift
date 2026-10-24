@@ -15,9 +15,14 @@ final class AttentionStore: ObservableObject {
     private let service = AttentionService(providers: [CalendarProvider()])
     private var lastLoadedAt: Date?
     private var timer: AnyCancellable?
+    private var reloadTask: Task<Void, Never>?
 
     init() {
         Task { await load() }
+
+        service.observeChanges { [weak self] in
+            Task { @MainActor in self?.scheduleReload() }
+        }
 
         timer = Timer.publish(every: 60, on: .main, in: .common)
             .autoconnect()
@@ -34,6 +39,16 @@ final class AttentionStore: ObservableObject {
         lastLoadedAt = Date()
         items = await service.fetchItems()
         now = Date()
+    }
+
+    /// 変更通知は短時間に連続して届くことがあるため、最後の通知から 0.5 秒待って 1 回だけ再取得する。
+    private func scheduleReload() {
+        reloadTask?.cancel()
+        reloadTask = Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            await load()
+        }
     }
 
     /// 表示対象。開始から gracePeriod を過ぎたものは除外する。
