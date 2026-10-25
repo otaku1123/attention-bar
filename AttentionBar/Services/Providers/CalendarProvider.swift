@@ -1,10 +1,6 @@
 import Foundation
 import EventKit
 
-enum CalendarProviderError: Error {
-    case accessDenied
-}
-
 /// EventKit 経由でカレンダー（macOS のカレンダーアプリに同期済みのもの）から直近の予定を取得する。
 final class CalendarProvider: AttentionProvider {
     private let store = EKEventStore()
@@ -33,7 +29,7 @@ final class CalendarProvider: AttentionProvider {
 
     func fetchItems() async throws -> [AttentionItem] {
         guard try await requestAccess() else {
-            throw CalendarProviderError.accessDenied
+            throw AttentionProviderError.accessDenied(.calendar)
         }
 
         let now = Date()
