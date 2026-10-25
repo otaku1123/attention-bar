@@ -8,6 +8,8 @@ final class AttentionStore: ObservableObject {
     private static let gracePeriod: TimeInterval = 10 * 60
     /// Provider から再取得する間隔。
     private static let refreshInterval: TimeInterval = 5 * 60
+    /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
+    private static let menuBarTitleMaxLength = 15
 
     @Published private(set) var items: [AttentionItem] = []
     @Published private(set) var deniedSources: Set<AttentionSource> = []
@@ -74,12 +76,18 @@ final class AttentionStore: ObservableObject {
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
             let elapsed = -minutes
+            let title = Self.truncated(item.title, maxLength: Self.menuBarTitleMaxLength)
             if elapsed == 0 {
-                return "\(item.source.emoji) \(item.title) 開始"
+                return "\(item.source.emoji) \(title) 開始"
             }
-            return "\(item.source.emoji) \(item.title) 開始から\(elapsed)分"
+            return "\(item.source.emoji) \(title) 開始から\(elapsed)分"
         }
         return "\(item.source.emoji) 次の予定まで\(Self.durationText(minutes: minutes))"
+    }
+
+    /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。
+    static func truncated(_ text: String, maxLength: Int) -> String {
+        text.count > maxLength ? String(text.prefix(maxLength)) + "…" : text
     }
 
     /// 60分未満は「18分」、以上は「1時間20分」「5時間」のように表示する。
