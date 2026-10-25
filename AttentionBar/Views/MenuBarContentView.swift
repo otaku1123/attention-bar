@@ -44,6 +44,14 @@ struct MenuBarContentView: View {
                     Text("開始: \(item.dueAt.formatted(date: .omitted, time: .shortened))")
                         .font(.callout)
                         .foregroundStyle(.secondary)
+                    if let url = item.actionURL {
+                        Button {
+                            NSWorkspace.shared.open(url)
+                        } label: {
+                            Label("開く", systemImage: "arrow.up.right.square")
+                        }
+                        .padding(.top, 4)
+                    }
                 }
             } else {
                 Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません")

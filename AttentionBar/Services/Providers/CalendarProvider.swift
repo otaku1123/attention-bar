@@ -53,7 +53,7 @@ final class CalendarProvider: AttentionProvider {
                     dueAt: event.startDate,
                     priority: 1,
                     source: .calendar,
-                    actionURL: event.url
+                    actionURL: actionURL(for: event)
                 )
             }
     }
@@ -68,5 +68,27 @@ final class CalendarProvider: AttentionProvider {
 
     private func isDeclined(_ event: EKEvent) -> Bool {
         event.attendees?.first(where: \.isCurrentUser)?.participantStatus == .declined
+    }
+
+    /// 会議サービスのホスト。メモ内の資料リンクなどを拾わないよう、場所・メモからはこれらのみ抽出する。
+    private static let meetingHosts = ["meet.google.com", "zoom.us", "teams.microsoft.com", "teams.live.com", "webex.com"]
+
+    /// event.url を優先し、なければ場所・メモに書かれた会議URLを返す。
+    /// Google Calendar の同期予定では Meet のリンクが url ではなくメモ・場所に入っていることが多いため。
+    private func actionURL(for event: EKEvent) -> URL? {
+        if let url = event.url {
+            return url
+        }
+        let text = [event.location, event.notes].compactMap { $0 }.joined(separator: "\n")
+        guard !text.isEmpty,
+              let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        else { return nil }
+
+        return detector.matches(in: text, range: NSRange(text.startIndex..., in: text))
+            .compactMap(\.url)
+            .first { url in
+                guard let host = url.host?.lowercased() else { return false }
+                return Self.meetingHosts.contains { host == $0 || host.hasSuffix("." + $0) }
+            }
     }
 }
