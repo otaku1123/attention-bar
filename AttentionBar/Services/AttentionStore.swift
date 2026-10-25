@@ -70,6 +70,14 @@ final class AttentionStore: ObservableObject {
             }
             return "\(item.source.emoji) \(item.title) 開始から\(elapsed)分"
         }
-        return "\(item.source.emoji) 次の予定まで\(minutes)分"
+        return "\(item.source.emoji) 次の予定まで\(Self.durationText(minutes: minutes))"
+    }
+
+    /// 60分未満は「18分」、以上は「1時間20分」「5時間」のように表示する。
+    static func durationText(minutes: Int) -> String {
+        guard minutes >= 60 else { return "\(minutes)分" }
+        let hours = minutes / 60
+        let rest = minutes % 60
+        return rest == 0 ? "\(hours)時間" : "\(hours)時間\(rest)分"
     }
 }
