@@ -5,11 +5,11 @@ import Combine
 @MainActor
 final class AttentionStore: ObservableObject {
     /// 開始後もこの時間だけは表示を残し、その後に次の予定へ切り替える。
-    private static let gracePeriod: TimeInterval = 10 * 60
+    nonisolated static let gracePeriod: TimeInterval = 10 * 60
     /// Provider から再取得する間隔。
     private static let refreshInterval: TimeInterval = 5 * 60
     /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
-    private static let menuBarTitleMaxLength = 15
+    private nonisolated static let menuBarTitleMaxLength = 15
 
     @Published private(set) var items: [AttentionItem] = []
     @Published private(set) var deniedSources: Set<AttentionSource> = []
@@ -56,15 +56,23 @@ final class AttentionStore: ObservableObject {
         }
     }
 
-    /// 表示対象。開始から gracePeriod を過ぎたものは除外する。
-    /// 将来的には PriorityEngine で並べ替える。現時点では priority の小さい順、同値なら dueAt の早い順で先頭を採用。
     var item: AttentionItem? {
-        items
-            .filter { $0.dueAt.addingTimeInterval(Self.gracePeriod) > now }
-            .min { ($0.priority, $0.dueAt) < ($1.priority, $1.dueAt) }
+        Self.selectItem(from: items, now: now)
     }
 
     var menuBarTitle: String {
+        Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now)
+    }
+
+    /// 表示対象。開始から gracePeriod を過ぎたものは除外する。
+    /// 将来的には PriorityEngine で並べ替える。現時点では priority の小さい順、同値なら dueAt の早い順で先頭を採用。
+    nonisolated static func selectItem(from items: [AttentionItem], now: Date) -> AttentionItem? {
+        items
+            .filter { $0.dueAt.addingTimeInterval(gracePeriod) > now }
+            .min { ($0.priority, $0.dueAt) < ($1.priority, $1.dueAt) }
+    }
+
+    nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date) -> String {
         guard let item else {
             // 他ソースのアイテムがあればそちらを優先し、何もないときだけ権限不足を表示する
             if let source = deniedSources.first {
@@ -76,7 +84,7 @@ final class AttentionStore: ObservableObject {
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
             let elapsed = -minutes
-            let title = Self.truncated(item.title, maxLength: Self.menuBarTitleMaxLength)
+            let title = truncated(item.title, maxLength: menuBarTitleMaxLength)
             switch item.source {
             case .reminder:
                 if elapsed == 0 {
@@ -91,16 +99,16 @@ final class AttentionStore: ObservableObject {
             }
         }
         let label = item.source == .reminder ? "期限まで" : "次の予定まで"
-        return "\(item.source.emoji) \(label)\(Self.durationText(minutes: minutes))"
+        return "\(item.source.emoji) \(label)\(durationText(minutes: minutes))"
     }
 
     /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。
-    static func truncated(_ text: String, maxLength: Int) -> String {
+    nonisolated static func truncated(_ text: String, maxLength: Int) -> String {
         text.count > maxLength ? String(text.prefix(maxLength)) + "…" : text
     }
 
     /// 60分未満は「18分」、以上は「1時間20分」「5時間」のように表示する。
-    static func durationText(minutes: Int) -> String {
+    nonisolated static func durationText(minutes: Int) -> String {
         guard minutes >= 60 else { return "\(minutes)分" }
         let hours = minutes / 60
         let rest = minutes % 60
