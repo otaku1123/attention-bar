@@ -14,19 +14,34 @@ struct AttentionService {
         self.providers = providers
     }
 
+    /// 全 Provider から並列に取得する。
     /// 失敗した Provider はスキップし、取得できた分だけ返す。権限がないソースは deniedSources に記録する。
     func fetchItems() async -> AttentionFetchResult {
-        var result = AttentionFetchResult()
-        for provider in providers {
-            do {
-                result.items += try await provider.fetchItems()
-            } catch AttentionProviderError.accessDenied(let source) {
-                result.deniedSources.insert(source)
-            } catch {
-                print("[AttentionService] \(type(of: provider)) failed: \(error)")
+        await withTaskGroup(of: (name: String, result: Result<[AttentionItem], Error>).self) { group in
+            for provider in providers {
+                group.addTask {
+                    do {
+                        return ("\(type(of: provider))", .success(try await provider.fetchItems()))
+                    } catch {
+                        return ("\(type(of: provider))", .failure(error))
+                    }
+                }
             }
+
+            // 完了順に集約する（順序は不定だが、表示対象の選択は AttentionStore が行うため影響しない）
+            var result = AttentionFetchResult()
+            for await (name, outcome) in group {
+                switch outcome {
+                case .success(let items):
+                    result.items += items
+                case .failure(AttentionProviderError.accessDenied(let source)):
+                    result.deniedSources.insert(source)
+                case .failure(let error):
+                    print("[AttentionService] \(name) failed: \(error)")
+                }
+            }
+            return result
         }
-        return result
     }
 
     /// いずれかの Provider でデータが変わったときに onChange を呼ぶ。
