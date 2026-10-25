@@ -15,7 +15,7 @@ final class AttentionStore: ObservableObject {
     @Published private(set) var deniedSources: Set<AttentionSource> = []
     @Published private(set) var now = Date()
 
-    private let service = AttentionService(providers: [CalendarProvider()])
+    private let service = AttentionService(providers: [CalendarProvider(), ReminderProvider()])
     private var lastLoadedAt: Date?
     private var timer: AnyCancellable?
     private var reloadTask: Task<Void, Never>?
@@ -77,12 +77,21 @@ final class AttentionStore: ObservableObject {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
             let elapsed = -minutes
             let title = Self.truncated(item.title, maxLength: Self.menuBarTitleMaxLength)
-            if elapsed == 0 {
-                return "\(item.source.emoji) \(title) 開始"
+            switch item.source {
+            case .reminder:
+                if elapsed == 0 {
+                    return "\(item.source.emoji) \(title) 期限"
+                }
+                return "\(item.source.emoji) \(title) 期限超過\(elapsed)分"
+            default:
+                if elapsed == 0 {
+                    return "\(item.source.emoji) \(title) 開始"
+                }
+                return "\(item.source.emoji) \(title) 開始から\(elapsed)分"
             }
-            return "\(item.source.emoji) \(title) 開始から\(elapsed)分"
         }
-        return "\(item.source.emoji) 次の予定まで\(Self.durationText(minutes: minutes))"
+        let label = item.source == .reminder ? "期限まで" : "次の予定まで"
+        return "\(item.source.emoji) \(label)\(Self.durationText(minutes: minutes))"
     }
 
     /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。

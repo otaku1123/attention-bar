@@ -33,7 +33,7 @@ struct MenuBarContentView: View {
                 Divider()
             }
 
-            Text("次の予定")
+            Text("次にやること")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -41,7 +41,7 @@ struct MenuBarContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.body.weight(.semibold))
-                    Text("開始: \(item.dueAt.formatted(date: .omitted, time: .shortened))")
+                    Text("\(item.source == .reminder ? "期限" : "開始"): \(item.dueAt.formatted(date: .omitted, time: .shortened))")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                     if let url = item.actionURL {
