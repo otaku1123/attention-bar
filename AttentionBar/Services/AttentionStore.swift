@@ -10,6 +10,7 @@ final class AttentionStore: ObservableObject {
     private static let refreshInterval: TimeInterval = 5 * 60
 
     @Published private(set) var items: [AttentionItem] = []
+    @Published private(set) var deniedSources: Set<AttentionSource> = []
     @Published private(set) var now = Date()
 
     private let service = AttentionService(providers: [CalendarProvider()])
@@ -37,7 +38,9 @@ final class AttentionStore: ObservableObject {
 
     func load() async {
         lastLoadedAt = Date()
-        items = await service.fetchItems()
+        let result = await service.fetchItems()
+        items = result.items
+        deniedSources = result.deniedSources
         now = Date()
     }
 
@@ -60,7 +63,13 @@ final class AttentionStore: ObservableObject {
     }
 
     var menuBarTitle: String {
-        guard let item else { return "📅 予定なし" }
+        guard let item else {
+            // 他ソースのアイテムがあればそちらを優先し、何もないときだけ権限不足を表示する
+            if let source = deniedSources.first {
+                return "\(source.emoji) \(source.displayName)権限なし"
+            }
+            return "📅 予定なし"
+        }
         let minutes = item.minutesRemaining(from: now)
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる

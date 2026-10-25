@@ -11,6 +11,28 @@ struct MenuBarContentView: View {
 
             Divider()
 
+            if !store.deniedSources.isEmpty {
+                ForEach(Array(store.deniedSources), id: \.self) { source in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("\(source.displayName)へのアクセスが許可されていません", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let url = source.privacySettingsURL {
+                            Button("システム設定を開く") {
+                                NSWorkspace.shared.open(url)
+                            }
+                            // 起動中のプロセスには権限変更が反映されないため
+                            Text("設定を変更した後は、アプリを再起動してください。")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                Divider()
+            }
+
             Text("次の予定")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -24,7 +46,7 @@ struct MenuBarContentView: View {
                         .foregroundStyle(.secondary)
                 }
             } else {
-                Text("予定はありません")
+                Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません")
                     .foregroundStyle(.secondary)
             }
 
