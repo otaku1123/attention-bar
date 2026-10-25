@@ -169,6 +169,8 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -195,6 +197,8 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
