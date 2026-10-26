@@ -7,8 +7,6 @@ import UserNotifications
 /// 同じ予定を何度登録しても上書きになり、重複して通知しない。
 @MainActor
 final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
-    /// 開始のこの時間前に通知する。
-    nonisolated static let leadTime: TimeInterval = 5 * 60
     private nonisolated static let identifierPrefix = "attention."
 
     struct Plan: Equatable {
@@ -25,7 +23,20 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
         center.delegate = self
     }
 
-    func schedule(_ items: [AttentionItem], now: Date) async {
+    /// leadTime が 0 以下なら通知しない（予約済みの通知も取り消す）。
+    func schedule(_ items: [AttentionItem], now: Date, leadTime: TimeInterval) async {
+        let plans = Self.plan(for: items, now: now, leadTime: leadTime)
+        let planned = Set(plans.map(\.identifier))
+
+        // 消えた予定・時刻が変わった予定の通知を取り消す
+        let stale = await center.pendingNotificationRequests()
+            .map(\.identifier)
+            .filter { $0.hasPrefix(Self.identifierPrefix) && !planned.contains($0) }
+        center.removePendingNotificationRequests(withIdentifiers: stale)
+
+        // 通知しない設定のときは許可ダイアログを出さない
+        guard !plans.isEmpty else { return }
+
         // 初回のみ許可ダイアログが出る。2回目以降は現在の許可状態が返る
         let granted: Bool
         do {
@@ -35,15 +46,6 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         guard granted else { return }
-
-        let plans = Self.plan(for: items, now: now)
-        let planned = Set(plans.map(\.identifier))
-
-        // 消えた予定・時刻が変わった予定の通知を取り消す
-        let stale = await center.pendingNotificationRequests()
-            .map(\.identifier)
-            .filter { $0.hasPrefix(Self.identifierPrefix) && !planned.contains($0) }
-        center.removePendingNotificationRequests(withIdentifiers: stale)
 
         for plan in plans {
             let content = UNMutableNotificationContent()
@@ -61,8 +63,9 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// 通知するアイテムと時刻を決める。通知時刻を過ぎたものは対象外。
-    nonisolated static func plan(for items: [AttentionItem], now: Date) -> [Plan] {
-        items
+    nonisolated static func plan(for items: [AttentionItem], now: Date, leadTime: TimeInterval) -> [Plan] {
+        guard leadTime > 0 else { return [] }
+        return items
             .filter { $0.source == .calendar }
             .compactMap { item in
                 let fireDate = item.dueAt.addingTimeInterval(-leadTime)

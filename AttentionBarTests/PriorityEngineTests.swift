@@ -28,6 +28,12 @@ struct GracePeriodTests {
     @Test func returnsNilAfterLastEventGracePeriod() {
         #expect(select([item("A", at: 0)], at: PriorityEngine.gracePeriod) == nil)
     }
+
+    @Test func usesGivenGracePeriod() {
+        let items = [item("A", at: 0), item("B", at: 30 * minute)]
+        #expect(PriorityEngine.select(from: items, now: now(minute), gracePeriod: 0)?.title == "B")
+        #expect(PriorityEngine.select(from: items, now: now(20 * minute), gracePeriod: 30 * minute)?.title == "A")
+    }
 }
 
 struct TierTests {

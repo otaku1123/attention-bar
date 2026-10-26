@@ -4,12 +4,7 @@ import EventKit
 /// EventKit 経由でリマインダーから期限付きの未完了項目を取得する。
 final class ReminderProvider: AttentionProvider {
     private let store = EKEventStore()
-    private let lookahead: TimeInterval
     private var changeObserver: NSObjectProtocol?
-
-    init(lookahead: TimeInterval = 24 * 60 * 60) {
-        self.lookahead = lookahead
-    }
 
     deinit {
         if let changeObserver {
@@ -27,7 +22,7 @@ final class ReminderProvider: AttentionProvider {
         }
     }
 
-    func fetchItems() async throws -> [AttentionItem] {
+    func fetchItems(lookahead: TimeInterval) async throws -> [AttentionItem] {
         guard try await requestAccess() else {
             throw AttentionProviderError.accessDenied(.reminder)
         }
