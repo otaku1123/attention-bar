@@ -16,6 +16,7 @@ final class AttentionStore: ObservableObject {
     @Published private(set) var now = Date()
 
     private let service = AttentionService(providers: [CalendarProvider(), ReminderProvider()])
+    private let notifications = NotificationScheduler()
     private var lastLoadedAt: Date?
     private var timer: AnyCancellable?
     private var reloadTask: Task<Void, Never>?
@@ -44,6 +45,7 @@ final class AttentionStore: ObservableObject {
         items = result.items
         deniedSources = result.deniedSources
         now = Date()
+        await notifications.schedule(items, now: now)
     }
 
     /// 変更通知は短時間に連続して届くことがあるため、最後の通知から 0.5 秒待って 1 回だけ再取得する。
