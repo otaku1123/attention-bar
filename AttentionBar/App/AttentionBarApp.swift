@@ -13,7 +13,7 @@ struct AttentionBarApp: App {
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(settings: store.settings)
+            SettingsView(settings: store.settings, loadCalendars: store.calendarOptions)
         }
     }
 }

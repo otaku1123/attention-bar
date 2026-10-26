@@ -7,6 +7,7 @@ final class AppSettings: ObservableObject {
         static let gracePeriodMinutes = "gracePeriodMinutes"
         static let lookaheadHours = "lookaheadHours"
         static let notificationLeadMinutes = "notificationLeadMinutes"
+        static let excludedCalendarIDs = "excludedCalendarIDs"
     }
 
     /// 設定画面の選択肢。
@@ -30,6 +31,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(notificationLeadMinutes, forKey: Key.notificationLeadMinutes) }
     }
 
+    /// 表示しないカレンダーの calendarIdentifier。後から追加されたカレンダーは表示対象になるよう、除外側を保存する。
+    @Published var excludedCalendarIDs: Set<String> {
+        didSet { defaults.set(Array(excludedCalendarIDs).sorted(), forKey: Key.excludedCalendarIDs) }
+    }
+
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -37,6 +43,7 @@ final class AppSettings: ObservableObject {
         gracePeriodMinutes = defaults.object(forKey: Key.gracePeriodMinutes) as? Int ?? 10
         lookaheadHours = defaults.object(forKey: Key.lookaheadHours) as? Int ?? 24
         notificationLeadMinutes = defaults.object(forKey: Key.notificationLeadMinutes) as? Int ?? 5
+        excludedCalendarIDs = Set(defaults.stringArray(forKey: Key.excludedCalendarIDs) ?? [])
     }
 
     var gracePeriod: TimeInterval {
