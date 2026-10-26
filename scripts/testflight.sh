@@ -16,7 +16,7 @@ ARCHIVE="$BUILD_DIR/AttentionBar.xcarchive"
 # アップロードごとに増やす必要があるため、日時からビルド番号を作る（例: 20261026.1145）
 BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d.%H%M)}"
 
-echo "==> archive（ビルド番号: $BUILD_NUMBER）"
+echo "==> archive（ビルド番号: ${BUILD_NUMBER}）"
 rm -rf "$BUILD_DIR"
 xcodebuild archive \
     -project AttentionBar.xcodeproj \

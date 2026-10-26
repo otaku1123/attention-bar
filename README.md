@@ -113,5 +113,6 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 | 管理された Mac（MDM）で起動できない | 組織のポリシーで制限されている可能性がある。管理者に確認する |
 | 権限をシステム設定で変更しても反映されない | アプリを再起動する |
 | `testflight.sh` で `No Accounts` / 認証エラー | Xcode → Settings → Accounts で Apple ID にサインインし直す |
+| `Failed to Use Accounts`、または `Team "... (Personal Team)" is not enrolled` | Program 加入前のチーム情報が残っている。Xcode → Settings → Accounts で Apple ID を削除して追加し直し、Xcode を再起動する。コマンドラインで失敗する場合は `open build/testflight/AttentionBar.xcarchive` → Distribute App → App Store Connect でアップロードする |
 | アップロードで `No suitable application records were found` | 「TestFlight で配布」の初回の準備 1（App Store Connect への登録）を行う |
 | アップロードで `bundle version must be higher` | 同じビルド番号が既にある。`BUILD_NUMBER=<より大きい値> scripts/testflight.sh` |
