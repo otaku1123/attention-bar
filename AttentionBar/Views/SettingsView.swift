@@ -2,7 +2,10 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
+    /// 設定画面を開くたびにカレンダー一覧を読み直す。
+    let loadCalendars: () -> [CalendarOption]
     @StateObject private var launchAtLogin = LaunchAtLogin()
+    @State private var calendars: [CalendarOption] = []
 
     var body: some View {
         Form {
@@ -15,6 +18,30 @@ struct SettingsView: View {
                 Picker("先読み時間", selection: $settings.lookaheadHours) {
                     ForEach(AppSettings.lookaheadChoices, id: \.self) { hours in
                         Text("\(hours)時間先まで").tag(hours)
+                    }
+                }
+            }
+
+            Section("カレンダー") {
+                if calendars.isEmpty {
+                    Text("カレンダーを取得できません。カレンダーへのアクセスを許可してください。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                ForEach(sourceTitles, id: \.self) { source in
+                    Text(source)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(calendars.filter { $0.sourceTitle == source }) { calendar in
+                        Toggle(isOn: isIncluded(calendar)) {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(Color(cgColor: calendar.color ?? CGColor(gray: 0.5, alpha: 1)))
+                                    .frame(width: 10, height: 10)
+                                Text(calendar.title)
+                            }
+                        }
                     }
                 }
             }
@@ -52,10 +79,33 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420)
-        .fixedSize()
+        // カレンダーが多いと縦に長くなるため、高さを固定して Form 内をスクロールさせる
+        .frame(width: 420, height: 560)
         .onAppear {
             launchAtLogin.refresh()
+            calendars = loadCalendars()
         }
+    }
+
+    /// アカウント名（並び順は一覧のソート順に従う）。
+    private var sourceTitles: [String] {
+        calendars.reduce(into: []) { titles, calendar in
+            if !titles.contains(calendar.sourceTitle) {
+                titles.append(calendar.sourceTitle)
+            }
+        }
+    }
+
+    private func isIncluded(_ calendar: CalendarOption) -> Binding<Bool> {
+        Binding(
+            get: { !settings.excludedCalendarIDs.contains(calendar.id) },
+            set: { included in
+                if included {
+                    settings.excludedCalendarIDs.remove(calendar.id)
+                } else {
+                    settings.excludedCalendarIDs.insert(calendar.id)
+                }
+            }
+        )
     }
 }

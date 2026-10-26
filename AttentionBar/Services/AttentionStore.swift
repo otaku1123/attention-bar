@@ -17,7 +17,8 @@ final class AttentionStore: ObservableObject {
 
     let settings = AppSettings()
 
-    private let service = AttentionService(providers: [CalendarProvider(), ReminderProvider()])
+    private let calendarProvider = CalendarProvider()
+    private lazy var service = AttentionService(providers: [calendarProvider, ReminderProvider()])
     private let notifications = NotificationScheduler()
     private var settingsObserver: AnyCancellable?
     private var lastLoadedAt: Date?
@@ -49,6 +50,7 @@ final class AttentionStore: ObservableObject {
 
     func load() async {
         lastLoadedAt = Date()
+        calendarProvider.excludedCalendarIDs = settings.excludedCalendarIDs
         let result = await service.fetchItems(lookahead: settings.lookahead)
         items = result.items
         deniedSources = result.deniedSources
@@ -69,6 +71,11 @@ final class AttentionStore: ObservableObject {
     /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。
     var rankedItems: [AttentionItem] {
         Array(PriorityEngine.ranked(from: items, now: now, gracePeriod: settings.gracePeriod).prefix(Self.listLimit))
+    }
+
+    /// 設定画面で選択できるカレンダー。
+    func calendarOptions() -> [CalendarOption] {
+        calendarProvider.availableCalendars()
     }
 
     var item: AttentionItem? {
