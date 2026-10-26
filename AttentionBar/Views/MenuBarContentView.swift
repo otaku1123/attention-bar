@@ -3,6 +3,7 @@ import AppKit
 
 struct MenuBarContentView: View {
     @ObservedObject var store: AttentionStore
+    @StateObject private var launchAtLogin = LaunchAtLogin()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -83,7 +84,30 @@ struct MenuBarContentView: View {
 
             Divider()
 
+            if launchAtLogin.requiresApproval {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("システム設定のログイン項目で許可すると、自動起動が有効になります。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("ログイン項目を開く") {
+                        launchAtLogin.openSystemSettings()
+                    }
+                }
+            }
+            if let message = launchAtLogin.errorMessage {
+                Text("自動起動の設定に失敗しました: \(message)")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             HStack {
+                Toggle("ログイン時に起動", isOn: Binding(
+                    get: { launchAtLogin.isEnabled || launchAtLogin.requiresApproval },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+                .toggleStyle(.checkbox)
                 Spacer()
                 Button("終了") {
                     NSApplication.shared.terminate(nil)
@@ -93,5 +117,8 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+        .onAppear {
+            launchAtLogin.refresh()
+        }
     }
 }
