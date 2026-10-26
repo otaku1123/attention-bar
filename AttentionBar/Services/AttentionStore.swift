@@ -15,7 +15,12 @@ final class AttentionStore: ObservableObject {
     @Published private(set) var deniedSources: Set<AttentionSource> = []
     @Published private(set) var now = Date()
 
-    private let service = AttentionService(providers: [CalendarProvider(), ReminderProvider()])
+    let settings = AppSettings()
+
+    private let calendarProvider = CalendarProvider()
+    private lazy var service = AttentionService(providers: [calendarProvider, ReminderProvider()])
+    private let notifications = NotificationScheduler()
+    private var settingsObserver: AnyCancellable?
     private var lastLoadedAt: Date?
     private var timer: AnyCancellable?
     private var reloadTask: Task<Void, Never>?
@@ -25,6 +30,11 @@ final class AttentionStore: ObservableObject {
 
         service.observeChanges { [weak self] in
             Task { @MainActor in self?.scheduleReload() }
+        }
+
+        // objectWillChange は値の変更前に届くが、再取得は 0.5 秒後なので新しい値で取得できる
+        settingsObserver = settings.objectWillChange.sink { [weak self] in
+            self?.scheduleReload()
         }
 
         timer = Timer.publish(every: 60, on: .main, in: .common)
@@ -40,10 +50,12 @@ final class AttentionStore: ObservableObject {
 
     func load() async {
         lastLoadedAt = Date()
-        let result = await service.fetchItems()
+        calendarProvider.excludedCalendarIDs = settings.excludedCalendarIDs
+        let result = await service.fetchItems(lookahead: settings.lookahead)
         items = result.items
         deniedSources = result.deniedSources
         now = Date()
+        await notifications.schedule(items, now: now, leadTime: settings.notificationLeadTime)
     }
 
     /// 変更通知は短時間に連続して届くことがあるため、最後の通知から 0.5 秒待って 1 回だけ再取得する。
@@ -58,7 +70,12 @@ final class AttentionStore: ObservableObject {
 
     /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。
     var rankedItems: [AttentionItem] {
-        Array(PriorityEngine.ranked(from: items, now: now).prefix(Self.listLimit))
+        Array(PriorityEngine.ranked(from: items, now: now, gracePeriod: settings.gracePeriod).prefix(Self.listLimit))
+    }
+
+    /// 設定画面で選択できるカレンダー。
+    func calendarOptions() -> [CalendarOption] {
+        calendarProvider.availableCalendars()
     }
 
     var item: AttentionItem? {

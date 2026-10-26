@@ -1,15 +1,23 @@
 import Foundation
 import EventKit
+import CoreGraphics
+
+/// 設定画面に表示するカレンダー。
+struct CalendarOption: Identifiable {
+    let id: String
+    let title: String
+    /// アカウント名（iCloud、Google など）。
+    let sourceTitle: String
+    let color: CGColor?
+}
 
 /// EventKit 経由でカレンダー（macOS のカレンダーアプリに同期済みのもの）から直近の予定を取得する。
 final class CalendarProvider: AttentionProvider {
     private let store = EKEventStore()
-    private let lookahead: TimeInterval
     private var changeObserver: NSObjectProtocol?
 
-    init(lookahead: TimeInterval = 24 * 60 * 60) {
-        self.lookahead = lookahead
-    }
+    /// 予定を取得しないカレンダーの calendarIdentifier。取得の前に AttentionStore が設定する。
+    var excludedCalendarIDs: Set<String> = []
 
     deinit {
         if let changeObserver {
@@ -27,16 +35,20 @@ final class CalendarProvider: AttentionProvider {
         }
     }
 
-    func fetchItems() async throws -> [AttentionItem] {
+    func fetchItems(lookahead: TimeInterval) async throws -> [AttentionItem] {
         guard try await requestAccess() else {
             throw AttentionProviderError.accessDenied(.calendar)
         }
+
+        let calendars = store.calendars(for: .event).filter { !excludedCalendarIDs.contains($0.calendarIdentifier) }
+        // 空配列を渡すと全カレンダーが対象になるため、すべて除外されている場合はここで終える
+        guard !calendars.isEmpty else { return [] }
 
         let now = Date()
         let predicate = store.predicateForEvents(
             withStart: now,
             end: now.addingTimeInterval(lookahead),
-            calendars: nil
+            calendars: calendars
         )
 
         return store.events(matching: predicate)
@@ -56,6 +68,20 @@ final class CalendarProvider: AttentionProvider {
                     actionURL: actionURL(for: event)
                 )
             }
+    }
+
+    /// 選択できるカレンダーの一覧。アクセスが許可されていなければ空。
+    func availableCalendars() -> [CalendarOption] {
+        store.calendars(for: .event)
+            .map { calendar in
+                CalendarOption(
+                    id: calendar.calendarIdentifier,
+                    title: calendar.title,
+                    sourceTitle: calendar.source?.title ?? "その他",
+                    color: calendar.cgColor
+                )
+            }
+            .sorted { ($0.sourceTitle, $0.title) < ($1.sourceTitle, $1.title) }
     }
 
     private func requestAccess() async throws -> Bool {

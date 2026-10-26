@@ -1,0 +1,111 @@
+import SwiftUI
+
+struct SettingsView: View {
+    @ObservedObject var settings: AppSettings
+    /// 設定画面を開くたびにカレンダー一覧を読み直す。
+    let loadCalendars: () -> [CalendarOption]
+    @StateObject private var launchAtLogin = LaunchAtLogin()
+    @State private var calendars: [CalendarOption] = []
+
+    var body: some View {
+        Form {
+            Section("表示") {
+                Picker("予定の開始後も表示する時間", selection: $settings.gracePeriodMinutes) {
+                    ForEach(AppSettings.gracePeriodChoices, id: \.self) { minutes in
+                        Text(minutes == 0 ? "表示しない" : "\(minutes)分").tag(minutes)
+                    }
+                }
+                Picker("先読み時間", selection: $settings.lookaheadHours) {
+                    ForEach(AppSettings.lookaheadChoices, id: \.self) { hours in
+                        Text("\(hours)時間先まで").tag(hours)
+                    }
+                }
+            }
+
+            Section("カレンダー") {
+                if calendars.isEmpty {
+                    Text("カレンダーを取得できません。カレンダーへのアクセスを許可してください。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                ForEach(sourceTitles, id: \.self) { source in
+                    Text(source)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(calendars.filter { $0.sourceTitle == source }) { calendar in
+                        Toggle(isOn: isIncluded(calendar)) {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(Color(cgColor: calendar.color ?? CGColor(gray: 0.5, alpha: 1)))
+                                    .frame(width: 10, height: 10)
+                                Text(calendar.title)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Section("通知") {
+                Picker("予定の開始前に通知", selection: $settings.notificationLeadMinutes) {
+                    ForEach(AppSettings.notificationLeadChoices, id: \.self) { minutes in
+                        Text(minutes == 0 ? "通知しない" : "\(minutes)分前").tag(minutes)
+                    }
+                }
+            }
+
+            Section("起動") {
+                Toggle("ログイン時に起動", isOn: Binding(
+                    get: { launchAtLogin.isEnabled || launchAtLogin.requiresApproval },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+                if launchAtLogin.requiresApproval {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("システム設定のログイン項目で許可すると、自動起動が有効になります。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("ログイン項目を開く") {
+                            launchAtLogin.openSystemSettings()
+                        }
+                    }
+                }
+                if let message = launchAtLogin.errorMessage {
+                    Text("自動起動の設定に失敗しました: \(message)")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .formStyle(.grouped)
+        // カレンダーが多いと縦に長くなるため、高さを固定して Form 内をスクロールさせる
+        .frame(width: 420, height: 560)
+        .onAppear {
+            launchAtLogin.refresh()
+            calendars = loadCalendars()
+        }
+    }
+
+    /// アカウント名（並び順は一覧のソート順に従う）。
+    private var sourceTitles: [String] {
+        calendars.reduce(into: []) { titles, calendar in
+            if !titles.contains(calendar.sourceTitle) {
+                titles.append(calendar.sourceTitle)
+            }
+        }
+    }
+
+    private func isIncluded(_ calendar: CalendarOption) -> Binding<Bool> {
+        Binding(
+            get: { !settings.excludedCalendarIDs.contains(calendar.id) },
+            set: { included in
+                if included {
+                    settings.excludedCalendarIDs.remove(calendar.id)
+                } else {
+                    settings.excludedCalendarIDs.insert(calendar.id)
+                }
+            }
+        )
+    }
+}

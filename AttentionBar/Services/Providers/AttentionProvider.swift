@@ -2,7 +2,8 @@ import Foundation
 
 /// 外部ソース（Calendar / Reminders / GitHub など）から AttentionItem を取得する。
 protocol AttentionProvider {
-    func fetchItems() async throws -> [AttentionItem]
+    /// 現在から lookahead 秒後までに開始・期限を迎えるアイテムを取得する。
+    func fetchItems(lookahead: TimeInterval) async throws -> [AttentionItem]
 
     /// データソースに変更があったときに onChange を呼ぶ。
     func observeChanges(_ onChange: @escaping () -> Void)

@@ -11,5 +11,9 @@ struct AttentionBarApp: App {
             Text(store.menuBarTitle)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView(settings: store.settings, loadCalendars: store.calendarOptions)
+        }
     }
 }

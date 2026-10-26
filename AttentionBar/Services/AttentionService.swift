@@ -16,12 +16,12 @@ struct AttentionService {
 
     /// 全 Provider から並列に取得する。
     /// 失敗した Provider はスキップし、取得できた分だけ返す。権限がないソースは deniedSources に記録する。
-    func fetchItems() async -> AttentionFetchResult {
+    func fetchItems(lookahead: TimeInterval) async -> AttentionFetchResult {
         await withTaskGroup(of: (name: String, result: Result<[AttentionItem], Error>).self) { group in
             for provider in providers {
                 group.addTask {
                     do {
-                        return ("\(type(of: provider))", .success(try await provider.fetchItems()))
+                        return ("\(type(of: provider))", .success(try await provider.fetchItems(lookahead: lookahead)))
                     } catch {
                         return ("\(type(of: provider))", .failure(error))
                     }
