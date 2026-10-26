@@ -11,6 +11,6 @@
 	<key>signingStyle</key>
 	<string>automatic</string>
 	<key>testFlightInternalTestingOnly</key>
-	<true/>
+	<false/>
 </dict>
 </plist>

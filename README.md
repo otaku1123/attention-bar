@@ -85,9 +85,13 @@ archive → App Store 用に署名 → App Store Connect へアップロード�
 
 ### インストール
 
-1. App Store Connect → TestFlight → 内部テスト → グループを作り、自分（Apple ID）をテスターに追加してビルドを割り当てる
-2. インストールしたい Mac に [TestFlight](https://apps.apple.com/app/testflight/id899247664) を入れ、同じ Apple ID でサインインしてインストールする
-3. Developer ID 版（zip）を入れている場合は、先に `/Applications/AttentionBar.app` を削除する
+開発者アカウントとは別の Apple ID（仕事用など）でも入れられるよう、外部テストで配布する。
+
+1. App Store Connect → TestFlight →「テスト情報」に、ベータ版 App の説明・フィードバック用メールアドレス・審査用の連絡先を入力する（サインインは不要と記載）
+2. 外部テスト → グループを作り、ビルドを追加して「審査へ提出」する。初回のビルドはベータ版 App 審査がある（通常 1 日程度）。同じバージョンの 2 回目以降のビルドは審査なしで配布されることが多い
+3. 承認後、テスターに使う Apple ID のメールアドレスを追加する（または公開リンクを有効にする）
+4. インストールしたい Mac に [TestFlight](https://apps.apple.com/app/testflight/id899247664) を入れ、招待された Apple ID でサインインし、招待メールのリンク（または公開リンク）から AttentionBar をインストールする
+5. Developer ID 版（zip）を入れている場合は、先に `/Applications/AttentionBar.app` を削除する
 
 TestFlight のビルドは 90 日で期限切れになるため、定期的にアップロードし直す。
 
