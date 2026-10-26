@@ -8,7 +8,7 @@ struct DummyProvider: AttentionProvider {
         dueAt = now.addingTimeInterval(18 * 60)
     }
 
-    func fetchItems() async throws -> [AttentionItem] {
+    func fetchItems(lookahead: TimeInterval) async throws -> [AttentionItem] {
         [
             AttentionItem(
                 title: "定例ミーティング",

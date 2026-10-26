@@ -7,7 +7,7 @@ import Foundation
 /// 2. 期限切れのリマインダー: 期限超過 overdueLimit 以内の未完了リマインダー
 /// 3. これからのアイテム: 上記以外で、開始・期限前のもの
 enum PriorityEngine {
-    /// 予定の開始後もこの時間だけは表示を残し、その後に次のアイテムへ切り替える。
+    /// 予定の開始後もこの時間だけは表示を残し、その後に次のアイテムへ切り替える（既定値。設定で変更できる）。
     static let gracePeriod: TimeInterval = 10 * 60
     /// 開始までこの時間以内の予定は、期限切れリマインダーより優先する。
     static let imminentWindow: TimeInterval = 15 * 60
@@ -24,20 +24,20 @@ enum PriorityEngine {
         }
     }
 
-    static func select(from items: [AttentionItem], now: Date) -> AttentionItem? {
-        ranked(from: items, now: now).first
+    static func select(from items: [AttentionItem], now: Date, gracePeriod: TimeInterval = gracePeriod) -> AttentionItem? {
+        ranked(from: items, now: now, gracePeriod: gracePeriod).first
     }
 
     /// 表示対象のアイテムを優先順に並べて返す。
-    static func ranked(from items: [AttentionItem], now: Date) -> [AttentionItem] {
+    static func ranked(from items: [AttentionItem], now: Date, gracePeriod: TimeInterval = gracePeriod) -> [AttentionItem] {
         items
-            .compactMap { item in tier(of: item, now: now).map { (tier: $0, item: item) } }
+            .compactMap { item in tier(of: item, now: now, gracePeriod: gracePeriod).map { (tier: $0, item: item) } }
             .sorted { ($0.tier, $0.item.priority, $0.item.dueAt) < ($1.tier, $1.item.priority, $1.item.dueAt) }
             .map(\.item)
     }
 
     /// アイテムの優先段。表示対象外なら nil。
-    static func tier(of item: AttentionItem, now: Date) -> Tier? {
+    static func tier(of item: AttentionItem, now: Date, gracePeriod: TimeInterval = gracePeriod) -> Tier? {
         // 正の値は開始・期限からの経過秒数、負の値は開始・期限までの残り秒数
         let elapsed = now.timeIntervalSince(item.dueAt)
 
