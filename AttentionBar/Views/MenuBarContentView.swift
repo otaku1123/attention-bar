@@ -41,7 +41,7 @@ struct MenuBarContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.body.weight(.semibold))
-                    Text("\(item.source == .reminder ? "期限" : "開始"): \(item.dueAt.formatted(date: .omitted, time: .shortened))")
+                    Text("\(item.source == .reminder ? "期限" : "開始"): \(AttentionStore.dueText(item.dueAt, now: store.now))")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                     if let url = item.actionURL {
@@ -56,6 +56,29 @@ struct MenuBarContentView: View {
             } else {
                 Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません")
                     .foregroundStyle(.secondary)
+            }
+
+            let upcoming = store.rankedItems.dropFirst()
+            if !upcoming.isEmpty {
+                Divider()
+
+                Text("このあと")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ForEach(Array(upcoming.enumerated()), id: \.offset) { _, item in
+                    HStack(spacing: 6) {
+                        Text(item.source.emoji)
+                        Text(item.title)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Spacer(minLength: 8)
+                        Text(AttentionStore.dueText(item.dueAt, now: store.now))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                    .font(.callout)
+                }
             }
 
             Divider()

@@ -67,6 +67,20 @@ struct FormattingTests {
     }
 
     @Test(arguments: [
+        (0, "10:00"), (-60, "9:00"), (780, "23:00"),
+        (-600, "0:00"), (-601, "昨日 23:59"), (840, "明日 0:00"),
+        (2880, "10/30 10:00"), (-2880, "10/26 10:00"),
+    ] as [(TimeInterval, String)])
+    func dueText(minutesFromNow: TimeInterval, expected: String) {
+        // 2026-10-28 10:00 (JST) を基準にする
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Tokyo")!
+        let reference = calendar.date(from: DateComponents(year: 2026, month: 10, day: 28, hour: 10))!
+        let date = reference.addingTimeInterval(minutesFromNow * 60)
+        #expect(AttentionStore.dueText(date, now: reference, calendar: calendar) == expected)
+    }
+
+    @Test(arguments: [
         (30.0, 1), (60.0, 1), (61.0, 2), (0.0, 0), (-30.0, 0), (-90.0, -1),
     ])
     func minutesRemaining(secondsUntilDue: TimeInterval, expected: Int) {

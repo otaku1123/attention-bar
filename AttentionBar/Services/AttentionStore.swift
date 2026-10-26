@@ -8,6 +8,8 @@ final class AttentionStore: ObservableObject {
     private static let refreshInterval: TimeInterval = 5 * 60
     /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
     private nonisolated static let menuBarTitleMaxLength = 15
+    /// ポップアップに一覧表示する最大件数。
+    private static let listLimit = 5
 
     @Published private(set) var items: [AttentionItem] = []
     @Published private(set) var deniedSources: Set<AttentionSource> = []
@@ -54,8 +56,13 @@ final class AttentionStore: ObservableObject {
         }
     }
 
+    /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。
+    var rankedItems: [AttentionItem] {
+        Array(PriorityEngine.ranked(from: items, now: now).prefix(Self.listLimit))
+    }
+
     var item: AttentionItem? {
-        PriorityEngine.select(from: items, now: now)
+        rankedItems.first
     }
 
     var menuBarTitle: String {
@@ -95,6 +102,26 @@ final class AttentionStore: ObservableObject {
     /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。
     nonisolated static func truncated(_ text: String, maxLength: Int) -> String {
         text.count > maxLength ? String(text.prefix(maxLength)) + "…" : text
+    }
+
+    /// 今日は「10:00」、前後 1 日は「昨日 18:00」「明日 9:00」、それ以外は「10/28 9:00」のように表示する。
+    nonisolated static func dueText(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "H:mm"
+        let time = formatter.string(from: date)
+
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
+        switch days {
+        case 0: return time
+        case -1: return "昨日 \(time)"
+        case 1: return "明日 \(time)"
+        default:
+            formatter.dateFormat = "M/d H:mm"
+            return formatter.string(from: date)
+        }
     }
 
     /// 60分未満は「18分」、以上は「1時間20分」「5時間」のように表示する。

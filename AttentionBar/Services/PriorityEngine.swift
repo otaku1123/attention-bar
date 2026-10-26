@@ -25,10 +25,15 @@ enum PriorityEngine {
     }
 
     static func select(from items: [AttentionItem], now: Date) -> AttentionItem? {
+        ranked(from: items, now: now).first
+    }
+
+    /// 表示対象のアイテムを優先順に並べて返す。
+    static func ranked(from items: [AttentionItem], now: Date) -> [AttentionItem] {
         items
             .compactMap { item in tier(of: item, now: now).map { (tier: $0, item: item) } }
-            .min { ($0.tier, $0.item.priority, $0.item.dueAt) < ($1.tier, $1.item.priority, $1.item.dueAt) }?
-            .item
+            .sorted { ($0.tier, $0.item.priority, $0.item.dueAt) < ($1.tier, $1.item.priority, $1.item.dueAt) }
+            .map(\.item)
     }
 
     /// アイテムの優先段。表示対象外なら nil。
