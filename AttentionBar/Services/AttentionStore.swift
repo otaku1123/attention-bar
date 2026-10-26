@@ -4,8 +4,6 @@ import Combine
 /// UI が参照する状態。取得済みの items と、残り時間計算用の現在時刻を保持する。
 @MainActor
 final class AttentionStore: ObservableObject {
-    /// 開始後もこの時間だけは表示を残し、その後に次の予定へ切り替える。
-    nonisolated static let gracePeriod: TimeInterval = 10 * 60
     /// Provider から再取得する間隔。
     private static let refreshInterval: TimeInterval = 5 * 60
     /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
@@ -57,19 +55,11 @@ final class AttentionStore: ObservableObject {
     }
 
     var item: AttentionItem? {
-        Self.selectItem(from: items, now: now)
+        PriorityEngine.select(from: items, now: now)
     }
 
     var menuBarTitle: String {
         Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now)
-    }
-
-    /// 表示対象。開始から gracePeriod を過ぎたものは除外する。
-    /// 将来的には PriorityEngine で並べ替える。現時点では priority の小さい順、同値なら dueAt の早い順で先頭を採用。
-    nonisolated static func selectItem(from items: [AttentionItem], now: Date) -> AttentionItem? {
-        items
-            .filter { $0.dueAt.addingTimeInterval(gracePeriod) > now }
-            .min { ($0.priority, $0.dueAt) < ($1.priority, $1.dueAt) }
     }
 
     nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date) -> String {
@@ -90,7 +80,7 @@ final class AttentionStore: ObservableObject {
                 if elapsed == 0 {
                     return "\(item.source.emoji) \(title) 期限"
                 }
-                return "\(item.source.emoji) \(title) 期限超過\(elapsed)分"
+                return "\(item.source.emoji) \(title) 期限超過\(durationText(minutes: elapsed))"
             default:
                 if elapsed == 0 {
                     return "\(item.source.emoji) \(title) 開始"

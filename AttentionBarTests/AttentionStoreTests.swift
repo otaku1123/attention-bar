@@ -2,55 +2,6 @@ import Foundation
 import Testing
 @testable import AttentionBar
 
-/// テストの基準時刻。実行時刻に依存しないよう固定する。
-private let base = Date(timeIntervalSince1970: 1_800_000_000)
-
-private func item(
-    _ title: String = "定例ミーティング",
-    at offset: TimeInterval,
-    priority: Int = 1,
-    source: AttentionSource = .calendar
-) -> AttentionItem {
-    AttentionItem(title: title, dueAt: base.addingTimeInterval(offset), priority: priority, source: source, actionURL: nil)
-}
-
-private func now(_ offset: TimeInterval) -> Date {
-    base.addingTimeInterval(offset)
-}
-
-struct SelectItemTests {
-    @Test func returnsNilWhenEmpty() {
-        #expect(AttentionStore.selectItem(from: [], now: base) == nil)
-    }
-
-    @Test func keepsStartedItemDuringGracePeriod() {
-        let items = [item("A", at: 0), item("B", at: 30 * 60)]
-        #expect(AttentionStore.selectItem(from: items, now: now(-60))?.title == "A")
-        #expect(AttentionStore.selectItem(from: items, now: now(0))?.title == "A")
-        #expect(AttentionStore.selectItem(from: items, now: now(AttentionStore.gracePeriod - 1))?.title == "A")
-    }
-
-    @Test func switchesToNextItemAfterGracePeriod() {
-        let items = [item("A", at: 0), item("B", at: 30 * 60)]
-        #expect(AttentionStore.selectItem(from: items, now: now(AttentionStore.gracePeriod))?.title == "B")
-    }
-
-    @Test func returnsNilAfterLastItemGracePeriod() {
-        let items = [item("A", at: 0)]
-        #expect(AttentionStore.selectItem(from: items, now: now(AttentionStore.gracePeriod)) == nil)
-    }
-
-    @Test func prefersLowerPriorityValue() {
-        let items = [item("soon", at: 60, priority: 2), item("important", at: 3600, priority: 1)]
-        #expect(AttentionStore.selectItem(from: items, now: base)?.title == "important")
-    }
-
-    @Test func prefersEarlierDueAtWhenPriorityIsEqual() {
-        let items = [item("later", at: 3600), item("earlier", at: 60, source: .reminder)]
-        #expect(AttentionStore.selectItem(from: items, now: base)?.title == "earlier")
-    }
-}
-
 struct MenuBarTitleTests {
     private func title(_ item: AttentionItem?, denied: Set<AttentionSource> = [], at offset: TimeInterval) -> String {
         AttentionStore.menuBarTitle(item: item, deniedSources: denied, now: now(offset))
@@ -87,6 +38,7 @@ struct MenuBarTitleTests {
         #expect(title(reminder, at: -5 * 60) == "✅ 期限まで5分")
         #expect(title(reminder, at: 30) == "✅ 牛乳を買う 期限")
         #expect(title(reminder, at: 2 * 60) == "✅ 牛乳を買う 期限超過2分")
+        #expect(title(reminder, at: 125 * 60) == "✅ 牛乳を買う 期限超過2時間5分")
     }
 
     @Test func truncatesLongTitleAfterStart() {
