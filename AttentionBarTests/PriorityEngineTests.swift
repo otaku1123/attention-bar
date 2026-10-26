@@ -102,3 +102,22 @@ struct PriorityTests {
         #expect(select(items, at: 0) == "earlier")
     }
 }
+
+struct RankedTests {
+    @Test func ordersByTierThenDueAtAndExcludesExpired() {
+        let items = [
+            item("後の会議", at: 60 * minute),
+            item("終わった会議", at: -20 * minute),
+            item("牛乳を買う", at: -60 * minute, source: .reminder),
+            item("提出", at: 30 * minute, source: .reminder),
+            item("直前の会議", at: 5 * minute),
+        ]
+        let titles = PriorityEngine.ranked(from: items, now: now(0)).map(\.title)
+        #expect(titles == ["直前の会議", "牛乳を買う", "提出", "後の会議"])
+    }
+
+    @Test func firstMatchesSelect() {
+        let items = [item("A", at: 30 * minute), item("B", at: 10 * minute, source: .reminder)]
+        #expect(PriorityEngine.ranked(from: items, now: now(0)).first?.title == select(items, at: 0))
+    }
+}
