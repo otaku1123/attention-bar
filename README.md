@@ -114,18 +114,28 @@ archive → App Store 用に署名 → App Store Connect へアップロード�
 
 TestFlight のビルドは 90 日で期限切れになるため、定期的にアップロードし直す。
 
-## GitHub Release を作る
+## ブランチ運用とリリース
 
-`scripts/release.sh` で作った zip を Releases に添付する。
+- `develop`: 開発ブランチ。機能ブランチ（`feature/<issue番号>-<名前>`）からの PR はここに向ける
+- `main`: リリース済みのコードだけを置く。**配布物は必ず `main` からビルドする**
+- タグ `v<MARKETING_VERSION>` は `main` のマージコミットに打つ
+
+### リリース手順
+
+1. Xcode で `MARKETING_VERSION` を上げ、`develop` にマージしておく
+2. `develop` → `main` の PR を作ってマージする（PR の本文がリリースノートの下書きになる）
+3. `main` でビルド・署名・公証し、Release を作る
 
 ```bash
+git checkout main && git pull
 scripts/release.sh
 gh release create v0.1.0 build/release/AttentionBar-0.1.0.zip \
-    --title "AttentionBar 0.1.0" --notes-file CHANGELOG.md   # または --generate-notes
+    --target main --title "AttentionBar 0.1.0" --generate-notes
 ```
 
-- タグ名は `v` + `MARKETING_VERSION`。次のリリース前に Xcode で `MARKETING_VERSION` を上げる
+- `--generate-notes` は前回のタグ以降にマージされた PR からノートを自動生成する
 - zip を直接渡す場合（AirDrop など）も、受け取った側の手順は「インストール」と同じ
+- TestFlight（`scripts/testflight.sh`）も同様に `main` から行う
 
 ## トラブルシューティング
 
