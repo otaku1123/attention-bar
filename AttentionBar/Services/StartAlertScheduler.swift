@@ -16,10 +16,13 @@ final class StartAlertScheduler {
 
     private var tasks: [String: Task<Void, Never>] = [:]
     private let panels = StartAlertPanelController()
+    /// 予約後に設定が変わっても、表示する時点の知らせ方を使う。
+    private var style: StartAlertStyle = .panel
 
-    /// enabled が false なら予約済みのものも取り消す。表示中のパネルは閉じない。
-    func schedule(_ items: [AttentionItem], now: Date, enabled: Bool) {
-        let plans = enabled ? Self.plan(for: items, now: now) : []
+    /// style が .off なら予約済みのものも取り消す。表示中のパネルは閉じない。
+    func schedule(_ items: [AttentionItem], now: Date, style: StartAlertStyle) {
+        self.style = style
+        let plans = style == .off ? [] : Self.plan(for: items, now: now)
         let planned = Set(plans.map(\.identifier))
 
         // 消えた予定・時刻が変わった予定・表示済みの予定の予約を片付ける
@@ -49,6 +52,6 @@ final class StartAlertScheduler {
     /// 少し早く起きた直後に再取得が走っても再予約しないよう、tasks からは消さない（次の schedule で片付く）。
     private func fire(_ plan: Plan) {
         guard Date().timeIntervalSince(plan.item.dueAt) <= Self.staleLimit else { return }
-        panels.show(plan.item, identifier: plan.identifier)
+        panels.show(plan.item, identifier: plan.identifier, fullScreen: style == .fullScreen)
     }
 }

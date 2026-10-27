@@ -52,7 +52,11 @@ struct SettingsView: View {
                         Text(minutes == 0 ? "通知しない" : "\(minutes)分前").tag(minutes)
                     }
                 }
-                Toggle("予定の開始時刻に画面の最前面で知らせる", isOn: $settings.showsStartAlert)
+                Picker("予定の開始時刻に最前面で知らせる", selection: $settings.startAlertStyle) {
+                    ForEach(StartAlertStyle.allCases, id: \.self) { style in
+                        Text(style.displayName).tag(style)
+                    }
+                }
             }
 
             Section("起動") {

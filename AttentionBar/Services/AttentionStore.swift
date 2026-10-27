@@ -57,7 +57,7 @@ final class AttentionStore: ObservableObject {
         items = result.items
         deniedSources = result.deniedSources
         now = Date()
-        startAlerts.schedule(items, now: now, enabled: settings.showsStartAlert)
+        startAlerts.schedule(items, now: now, style: settings.startAlertStyle)
         await notifications.schedule(items, now: now, leadTime: settings.notificationLeadTime)
     }
 
