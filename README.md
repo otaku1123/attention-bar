@@ -4,6 +4,25 @@
 
 - 対応 OS: macOS 13 以降
 - 外部ライブラリなし（SwiftUI / EventKit / ServiceManagement）
+- ネットワーク通信なし。カレンダー・リマインダーは端末内で読むだけ（[プライバシーポリシー](PRIVACY.md)）
+
+## できること
+
+- 次の予定・期限までの残り時間をメニューバーに常時表示（例: `📅 次の予定まで12分`、開始後は `📅 定例会議 3分経過`）
+- クリックで上位数件を優先順に一覧表示。予定に会議 URL があればそこから開ける
+- 開始 5 分前（設定可）に通知。開始時刻には最前面のパネルまたは全画面で知らせる
+- 表示するカレンダーの選択、先読み時間・通知タイミングの設定、ログイン時の自動起動
+
+## インストール
+
+1. [Releases](https://github.com/otaku1123/attention-bar/releases) から最新の `AttentionBar-<バージョン>.zip` をダウンロードし、ダブルクリックで展開する
+2. `AttentionBar.app` を `/Applications` に移動して起動する
+3. カレンダー・リマインダーへのアクセスを許可する
+4. 自動起動したい場合は、ポップアップの「ログイン時に起動」にチェックを入れる（`/Applications` に置いてから設定する）
+
+Developer ID で署名・公証済みなので、Gatekeeper の警告なしで起動できる。
+
+不具合・要望は [Issues](https://github.com/otaku1123/attention-bar/issues) へ。
 
 ## 開発
 
@@ -95,12 +114,18 @@ archive → App Store 用に署名 → App Store Connect へアップロード�
 
 TestFlight のビルドは 90 日で期限切れになるため、定期的にアップロードし直す。
 
-## 別の Mac へのインストール
+## GitHub Release を作る
 
-1. `AttentionBar-<バージョン>.zip` をコピーし（AirDrop、クラウドストレージなど）、ダブルクリックで展開する
-2. `AttentionBar.app` を `/Applications` に移動して起動する
-3. カレンダー・リマインダーへのアクセスを許可する
-4. 自動起動したい場合は、ポップアップの「ログイン時に起動」にチェックを入れる（`/Applications` に置いてから設定する）
+`scripts/release.sh` で作った zip を Releases に添付する。
+
+```bash
+scripts/release.sh
+gh release create v0.1.0 build/release/AttentionBar-0.1.0.zip \
+    --title "AttentionBar 0.1.0" --notes-file CHANGELOG.md   # または --generate-notes
+```
+
+- タグ名は `v` + `MARKETING_VERSION`。次のリリース前に Xcode で `MARKETING_VERSION` を上げる
+- zip を直接渡す場合（AirDrop など）も、受け取った側の手順は「インストール」と同じ
 
 ## トラブルシューティング
 
@@ -117,3 +142,7 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 | アップロードで `No suitable application records were found` | 「TestFlight で配布」の初回の準備 1（App Store Connect への登録）を行う |
 | アップロードで `bundle version must be higher` | 同じビルド番号が既にある。`BUILD_NUMBER=<より大きい値> scripts/testflight.sh` |
 | 会議中などにメニューバーから表示が消える | メニューバーの幅が足りず、macOS が左側のアイコンから隠している。⌘ を押しながらアイコンを右側（時計の近く）へドラッグすると隠れにくくなる。不要な常駐アプリを減らすのも有効 |
+
+## ライセンス
+
+[MIT License](LICENSE)
