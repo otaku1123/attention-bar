@@ -52,6 +52,7 @@ struct SettingsView: View {
                         Text(minutes == 0 ? "通知しない" : "\(minutes)分前").tag(minutes)
                     }
                 }
+                Toggle("予定の開始時刻に画面の最前面で知らせる", isOn: $settings.showsStartAlert)
             }
 
             Section("起動") {

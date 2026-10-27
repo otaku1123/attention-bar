@@ -20,6 +20,7 @@ final class AttentionStore: ObservableObject {
     private let calendarProvider = CalendarProvider()
     private lazy var service = AttentionService(providers: [calendarProvider, ReminderProvider()])
     private let notifications = NotificationScheduler()
+    private let startAlerts = StartAlertScheduler()
     private var settingsObserver: AnyCancellable?
     private var lastLoadedAt: Date?
     private var timer: AnyCancellable?
@@ -55,6 +56,7 @@ final class AttentionStore: ObservableObject {
         items = result.items
         deniedSources = result.deniedSources
         now = Date()
+        startAlerts.schedule(items, now: now, enabled: settings.showsStartAlert)
         await notifications.schedule(items, now: now, leadTime: settings.notificationLeadTime)
     }
 
