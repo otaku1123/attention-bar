@@ -17,7 +17,7 @@ struct AppSettingsTests {
         #expect(settings.gracePeriod == PriorityEngine.gracePeriod)
         #expect(settings.lookahead == 24 * 60 * 60)
         #expect(settings.notificationLeadTime == 5 * 60)
-        #expect(settings.showsStartAlert)
+        #expect(settings.startAlertStyle == .panel)
         #expect(settings.excludedCalendarIDs.isEmpty)
     }
 
@@ -27,14 +27,25 @@ struct AppSettingsTests {
         settings.gracePeriodMinutes = 0
         settings.lookaheadHours = 48
         settings.notificationLeadMinutes = 0
-        settings.showsStartAlert = false
+        settings.startAlertStyle = .fullScreen
         settings.excludedCalendarIDs = ["work", "holidays"]
 
         let restored = AppSettings(defaults: defaults)
         #expect(restored.gracePeriodMinutes == 0)
         #expect(restored.lookaheadHours == 48)
         #expect(restored.notificationLeadMinutes == 0)
-        #expect(!restored.showsStartAlert)
+        #expect(restored.startAlertStyle == .fullScreen)
         #expect(restored.excludedCalendarIDs == ["work", "holidays"])
+    }
+
+    /// 旧設定（ON/OFF）で OFF にしていた人は「知らせない」、ON なら「パネル」として引き継ぐ。
+    @Test func migratesOldStartAlertToggle() {
+        let off = makeDefaults()
+        off.set(false, forKey: "showsStartAlert")
+        #expect(AppSettings(defaults: off).startAlertStyle == .off)
+
+        let on = makeDefaults()
+        on.set(true, forKey: "showsStartAlert")
+        #expect(AppSettings(defaults: on).startAlertStyle == .panel)
     }
 }
