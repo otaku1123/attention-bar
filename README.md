@@ -4,6 +4,25 @@
 
 - 対応 OS: macOS 13 以降
 - 外部ライブラリなし（SwiftUI / EventKit / ServiceManagement）
+- ネットワーク通信なし。カレンダー・リマインダーは端末内で読むだけ（[プライバシーポリシー](PRIVACY.md)）
+
+## できること
+
+- 次の予定・期限までの残り時間をメニューバーに常時表示（例: `📅 次の予定まで12分`、開始後は `📅 定例会議 3分経過`）
+- クリックで上位数件を優先順に一覧表示。予定に会議 URL があればそこから開ける
+- 開始 5 分前（設定可）に通知。開始時刻には最前面のパネルまたは全画面で知らせる
+- 表示するカレンダーの選択、先読み時間・通知タイミングの設定、ログイン時の自動起動
+
+## インストール
+
+1. [Releases](https://github.com/otaku1123/attention-bar/releases) から最新の `AttentionBar-<バージョン>.zip` をダウンロードし、ダブルクリックで展開する
+2. `AttentionBar.app` を `/Applications` に移動して起動する
+3. カレンダー・リマインダーへのアクセスを許可する
+4. 自動起動したい場合は、ポップアップの「ログイン時に起動」にチェックを入れる（`/Applications` に置いてから設定する）
+
+Developer ID で署名・公証済みなので、Gatekeeper の警告なしで起動できる。
+
+不具合・要望は [Issues](https://github.com/otaku1123/attention-bar/issues) へ。
 
 ## 開発
 
@@ -95,12 +114,28 @@ archive → App Store 用に署名 → App Store Connect へアップロード�
 
 TestFlight のビルドは 90 日で期限切れになるため、定期的にアップロードし直す。
 
-## 別の Mac へのインストール
+## ブランチ運用とリリース
 
-1. `AttentionBar-<バージョン>.zip` をコピーし（AirDrop、クラウドストレージなど）、ダブルクリックで展開する
-2. `AttentionBar.app` を `/Applications` に移動して起動する
-3. カレンダー・リマインダーへのアクセスを許可する
-4. 自動起動したい場合は、ポップアップの「ログイン時に起動」にチェックを入れる（`/Applications` に置いてから設定する）
+- `develop`: 開発ブランチ。機能ブランチ（`feature/<issue番号>-<名前>`）からの PR はここに向ける
+- `main`: リリース済みのコードだけを置く。**配布物は必ず `main` からビルドする**
+- タグ `v<MARKETING_VERSION>` は `main` のマージコミットに打つ
+
+### リリース手順
+
+1. Xcode で `MARKETING_VERSION` を上げ、`develop` にマージしておく
+2. `develop` → `main` の PR を作ってマージする（PR の本文がリリースノートの下書きになる）
+3. `main` でビルド・署名・公証し、Release を作る
+
+```bash
+git checkout main && git pull
+scripts/release.sh
+gh release create v0.1.0 build/release/AttentionBar-0.1.0.zip \
+    --target main --title "AttentionBar 0.1.0" --generate-notes
+```
+
+- `--generate-notes` は前回のタグ以降にマージされた PR からノートを自動生成する
+- zip を直接渡す場合（AirDrop など）も、受け取った側の手順は「インストール」と同じ
+- TestFlight（`scripts/testflight.sh`）も同様に `main` から行う
 
 ## トラブルシューティング
 
@@ -117,3 +152,7 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 | アップロードで `No suitable application records were found` | 「TestFlight で配布」の初回の準備 1（App Store Connect への登録）を行う |
 | アップロードで `bundle version must be higher` | 同じビルド番号が既にある。`BUILD_NUMBER=<より大きい値> scripts/testflight.sh` |
 | 会議中などにメニューバーから表示が消える | メニューバーの幅が足りず、macOS が左側のアイコンから隠している。⌘ を押しながらアイコンを右側（時計の近く）へドラッグすると隠れにくくなる。不要な常駐アプリを減らすのも有効 |
+
+## ライセンス
+
+[MIT License](LICENSE)
