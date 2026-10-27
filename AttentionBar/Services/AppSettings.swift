@@ -7,6 +7,7 @@ final class AppSettings: ObservableObject {
         static let gracePeriodMinutes = "gracePeriodMinutes"
         static let lookaheadHours = "lookaheadHours"
         static let notificationLeadMinutes = "notificationLeadMinutes"
+        static let showsStartAlert = "showsStartAlert"
         static let excludedCalendarIDs = "excludedCalendarIDs"
     }
 
@@ -31,6 +32,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(notificationLeadMinutes, forKey: Key.notificationLeadMinutes) }
     }
 
+    /// 予定の開始時刻に最前面のパネルで知らせるか。
+    @Published var showsStartAlert: Bool {
+        didSet { defaults.set(showsStartAlert, forKey: Key.showsStartAlert) }
+    }
+
     /// 表示しないカレンダーの calendarIdentifier。後から追加されたカレンダーは表示対象になるよう、除外側を保存する。
     @Published var excludedCalendarIDs: Set<String> {
         didSet { defaults.set(Array(excludedCalendarIDs).sorted(), forKey: Key.excludedCalendarIDs) }
@@ -43,6 +49,7 @@ final class AppSettings: ObservableObject {
         gracePeriodMinutes = defaults.object(forKey: Key.gracePeriodMinutes) as? Int ?? 10
         lookaheadHours = defaults.object(forKey: Key.lookaheadHours) as? Int ?? 24
         notificationLeadMinutes = defaults.object(forKey: Key.notificationLeadMinutes) as? Int ?? 5
+        showsStartAlert = defaults.object(forKey: Key.showsStartAlert) as? Bool ?? true
         excludedCalendarIDs = Set(defaults.stringArray(forKey: Key.excludedCalendarIDs) ?? [])
     }
 

@@ -17,6 +17,7 @@ struct AppSettingsTests {
         #expect(settings.gracePeriod == PriorityEngine.gracePeriod)
         #expect(settings.lookahead == 24 * 60 * 60)
         #expect(settings.notificationLeadTime == 5 * 60)
+        #expect(settings.showsStartAlert)
         #expect(settings.excludedCalendarIDs.isEmpty)
     }
 
@@ -26,12 +27,14 @@ struct AppSettingsTests {
         settings.gracePeriodMinutes = 0
         settings.lookaheadHours = 48
         settings.notificationLeadMinutes = 0
+        settings.showsStartAlert = false
         settings.excludedCalendarIDs = ["work", "holidays"]
 
         let restored = AppSettings(defaults: defaults)
         #expect(restored.gracePeriodMinutes == 0)
         #expect(restored.lookaheadHours == 48)
         #expect(restored.notificationLeadMinutes == 0)
+        #expect(!restored.showsStartAlert)
         #expect(restored.excludedCalendarIDs == ["work", "holidays"])
     }
 }
