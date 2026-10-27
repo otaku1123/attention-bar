@@ -28,9 +28,9 @@ struct MenuBarTitleTests {
     }
 
     @Test func calendarAfterStart() {
-        #expect(title(item(at: 0), at: 30) == "📅 定例ミーティング 開始")
-        #expect(title(item(at: 0), at: 3 * 60) == "📅 定例ミーティング 開始から3分")
-        #expect(title(item(at: 0), at: 3 * 60 + 59) == "📅 定例ミーティング 開始から3分")
+        #expect(title(item(at: 0), at: 30) == "📅 定例ミーティ… 開始")
+        #expect(title(item(at: 0), at: 3 * 60) == "📅 定例ミーティ… 3分経過")
+        #expect(title(item(at: 0), at: 3 * 60 + 59) == "📅 定例ミーティ… 3分経過")
     }
 
     @Test func reminderBeforeAndAfterDue() {
@@ -43,7 +43,7 @@ struct MenuBarTitleTests {
 
     @Test func truncatesLongTitleAfterStart() {
         let long = item("【確認用】猶予時間の切り替えテスト予定", at: 0)
-        #expect(title(long, at: 60) == "📅 【確認用】猶予時間の切り替えテ… 開始から1分")
+        #expect(title(long, at: 60) == "📅 【確認用】猶… 1分経過")
     }
 }
 

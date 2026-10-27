@@ -7,7 +7,8 @@ final class AttentionStore: ObservableObject {
     /// Provider から再取得する間隔。
     private static let refreshInterval: TimeInterval = 5 * 60
     /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
-    private nonisolated static let menuBarTitleMaxLength = 15
+    /// 会議中はマイク等のインジケータが増えて幅が足りなくなり、macOS にアイコンごと隠されるため短めにする（#35）。
+    private nonisolated static let menuBarTitleMaxLength = 6
     /// ポップアップに一覧表示する最大件数。
     private static let listLimit = 5
 
@@ -111,7 +112,7 @@ final class AttentionStore: ObservableObject {
                 if elapsed == 0 {
                     return "\(item.source.emoji) \(title) 開始"
                 }
-                return "\(item.source.emoji) \(title) 開始から\(elapsed)分"
+                return "\(item.source.emoji) \(title) \(elapsed)分経過"
             }
         }
         let label = item.source == .reminder ? "期限まで" : "次の予定まで"

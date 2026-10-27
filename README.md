@@ -74,3 +74,4 @@ scripts/release.sh
 | 別の Mac で「開発元を検証できません」と出る | `spctl --assess --type execute --verbose /Applications/AttentionBar.app` で `Notarized Developer ID` か確認する。staple 前の zip を渡していないか確認する |
 | 管理された Mac（MDM）で起動できない | 組織のポリシーで制限されている可能性がある。管理者に確認する |
 | 権限をシステム設定で変更しても反映されない | アプリを再起動する |
+| 会議中などにメニューバーから表示が消える | メニューバーの幅が足りず、macOS が左側のアイコンから隠している。⌘ を押しながらアイコンを右側（時計の近く）へドラッグすると隠れにくくなる。不要な常駐アプリを減らすのも有効 |
