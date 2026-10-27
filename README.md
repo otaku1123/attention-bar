@@ -57,6 +57,44 @@ scripts/release.sh
 - 最後に `source=Notarized Developer ID` と `完了: build/release/AttentionBar-<バージョン>.zip` が表示される
 - バージョンは Xcode の `MARKETING_VERSION`（現在 0.1.0）
 
+## TestFlight で配布
+
+App Store Connect にアップロードし、TestFlight アプリからインストール・更新できるようにする。App Sandbox を有効にしている。
+
+### 初回の準備
+
+1. **App Store Connect にアプリを登録する**
+   [App Store Connect](https://appstoreconnect.apple.com) → アプリ →「+」→ 新規 App。
+   プラットフォーム: macOS、名前: AttentionBar（ストア上で一意である必要がある）、Bundle ID: `com.otaku1123.AttentionBar`、SKU: 任意（例: `attentionbar`）。
+   Bundle ID が選択肢にない場合は、[Identifiers](https://developer.apple.com/account/resources/identifiers/list) で App ID を登録する。
+2. **Xcode に Apple ID でサインインする**
+   Xcode → Settings → Accounts に Team 8F2U53RA9A の Apple ID があること。配布用の証明書・プロファイルはアップロード時に自動作成される。
+
+### 手順
+
+```bash
+scripts/testflight.sh
+```
+
+archive → App Store 用に署名 → App Store Connect へアップロードまでを行う。ビルド番号は日時（例: `20261026.1145`）から自動で付ける。
+
+### 期待される結果
+
+- `** EXPORT SUCCEEDED **` と `完了: ビルド ... をアップロードしました` が表示される
+- 数分〜数十分後、App Store Connect の TestFlight タブにビルドが表示される
+
+### インストール
+
+開発者アカウントとは別の Apple ID（仕事用など）でも入れられるよう、外部テストで配布する。
+
+1. App Store Connect → TestFlight →「テスト情報」に、ベータ版 App の説明・フィードバック用メールアドレス・審査用の連絡先を入力する（サインインは不要と記載）
+2. 外部テスト → グループを作り（左側に「外部テスト」が無い場合は、先に内部テストのグループを 1 つ作る）、ビルドを追加して「審査へ提出」する。初回のビルドはベータ版 App 審査がある（通常 1 日程度）。同じバージョンの 2 回目以降のビルドは審査なしで配布されることが多い
+3. 承認後、テスターに使う Apple ID のメールアドレスを追加する（または公開リンクを有効にする）
+4. インストールしたい Mac に [TestFlight](https://apps.apple.com/app/testflight/id899247664) を入れ、招待された Apple ID でサインインし、招待メールのリンク（または公開リンク）から AttentionBar をインストールする
+5. Developer ID 版（zip）を入れている場合は、先に `/Applications/AttentionBar.app` を削除する
+
+TestFlight のビルドは 90 日で期限切れになるため、定期的にアップロードし直す。
+
 ## 別の Mac へのインストール
 
 1. `AttentionBar-<バージョン>.zip` をコピーし（AirDrop、クラウドストレージなど）、ダブルクリックで展開する
@@ -74,4 +112,8 @@ scripts/release.sh
 | 別の Mac で「開発元を検証できません」と出る | `spctl --assess --type execute --verbose /Applications/AttentionBar.app` で `Notarized Developer ID` か確認する。staple 前の zip を渡していないか確認する |
 | 管理された Mac（MDM）で起動できない | 組織のポリシーで制限されている可能性がある。管理者に確認する |
 | 権限をシステム設定で変更しても反映されない | アプリを再起動する |
+| `testflight.sh` で `No Accounts` / 認証エラー | Xcode → Settings → Accounts で Apple ID にサインインし直す |
+| `Failed to Use Accounts`、または `Team "... (Personal Team)" is not enrolled` | Program 加入前のチーム情報が残っている。Xcode → Settings → Accounts で Apple ID を削除して追加し直し、Xcode を再起動する。コマンドラインで失敗する場合は `open build/testflight/AttentionBar.xcarchive` → Distribute App → App Store Connect でアップロードする |
+| アップロードで `No suitable application records were found` | 「TestFlight で配布」の初回の準備 1（App Store Connect への登録）を行う |
+| アップロードで `bundle version must be higher` | 同じビルド番号が既にある。`BUILD_NUMBER=<より大きい値> scripts/testflight.sh` |
 | 会議中などにメニューバーから表示が消える | メニューバーの幅が足りず、macOS が左側のアイコンから隠している。⌘ を押しながらアイコンを右側（時計の近く）へドラッグすると隠れにくくなる。不要な常駐アプリを減らすのも有効 |

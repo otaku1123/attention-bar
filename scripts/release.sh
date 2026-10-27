@@ -49,7 +49,7 @@ RESULT=$(xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --w
 STATUS=$(echo "$RESULT" | plutil -extract status raw -)
 if [ "$STATUS" != "Accepted" ]; then
     SUBMISSION_ID=$(echo "$RESULT" | plutil -extract id raw -)
-    echo "error: 公証に失敗しました（status: $STATUS）。詳細:" >&2
+    echo "error: 公証に失敗しました（status: ${STATUS}）。詳細:" >&2
     xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARY_PROFILE" >&2
     exit 1
 fi
