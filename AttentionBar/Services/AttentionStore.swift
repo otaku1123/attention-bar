@@ -54,9 +54,11 @@ final class AttentionStore: ObservableObject {
         lastLoadedAt = Date()
         calendarProvider.excludedCalendarIDs = settings.excludedCalendarIDs
         let result = await service.fetchItems(lookahead: settings.lookahead)
-        items = result.items
-        deniedSources = result.deniedSources
         now = Date()
+        settings.pruneHiddenEvents(now: now)
+        // 非表示にした予定は、通知・開始時刻のパネルの対象からも外す
+        items = result.items.filter { !($0.source == .calendar && settings.isHidden($0)) }
+        deniedSources = result.deniedSources
         startAlerts.schedule(items, now: now, style: settings.startAlertStyle)
         await notifications.schedule(items, now: now, leadTime: settings.notificationLeadTime)
     }
@@ -69,6 +71,13 @@ final class AttentionStore: ObservableObject {
             guard !Task.isCancelled else { return }
             await load()
         }
+    }
+
+    /// 予定を今回だけ表示しないようにする。設定の変更で再取得が走るが、それを待たずに一覧から消す。
+    func hide(_ item: AttentionItem) {
+        guard item.source == .calendar else { return }
+        settings.hide(item)
+        items.removeAll { $0.source == .calendar && settings.isHidden($0) }
     }
 
     /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。

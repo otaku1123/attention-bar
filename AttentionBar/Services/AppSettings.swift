@@ -28,7 +28,11 @@ final class AppSettings: ObservableObject {
         /// 旧設定（ON/OFF）。startAlertStyle が未保存のときだけ引き継ぎに使う。
         static let showsStartAlert = "showsStartAlert"
         static let excludedCalendarIDs = "excludedCalendarIDs"
+        static let hiddenEventKeys = "hiddenEventKeys"
     }
+
+    /// 非表示にした予定の記録を残す期間（開始時刻から）。過ぎたものは表示対象外になっているので消す。
+    static let hiddenEventRetention: TimeInterval = 24 * 60 * 60
 
     /// 設定画面の選択肢。
     static let gracePeriodChoices = [0, 5, 10, 15, 30]
@@ -61,6 +65,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(Array(excludedCalendarIDs).sorted(), forKey: Key.excludedCalendarIDs) }
     }
 
+    /// 非表示にした予定（今回だけ無視）のキー。形式は「開始時刻の UNIX 秒.タイトル」（#46）。
+    @Published private(set) var hiddenEventKeys: Set<String> {
+        didSet { defaults.set(Array(hiddenEventKeys).sorted(), forKey: Key.hiddenEventKeys) }
+    }
+
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -74,6 +83,37 @@ final class AppSettings: ObservableObject {
             startAlertStyle = defaults.object(forKey: Key.showsStartAlert) as? Bool == false ? .off : .panel
         }
         excludedCalendarIDs = Set(defaults.stringArray(forKey: Key.excludedCalendarIDs) ?? [])
+        hiddenEventKeys = Set(defaults.stringArray(forKey: Key.hiddenEventKeys) ?? [])
+    }
+
+    /// 予定ごとのキー。繰り返しの予定は回ごとに別のキーになる。
+    /// 複数のカレンダーに入っている同じ会議もまとめて非表示になるよう、カレンダーの識別子は含めない。
+    nonisolated static func hiddenEventKey(for item: AttentionItem) -> String {
+        "\(Int(item.dueAt.timeIntervalSince1970)).\(item.title)"
+    }
+
+    func hide(_ item: AttentionItem) {
+        hiddenEventKeys.insert(Self.hiddenEventKey(for: item))
+    }
+
+    func isHidden(_ item: AttentionItem) -> Bool {
+        hiddenEventKeys.contains(Self.hiddenEventKey(for: item))
+    }
+
+    func unhideAll() {
+        hiddenEventKeys = []
+    }
+
+    /// 開始から hiddenEventRetention を過ぎた記録を消す。変更がなければ代入しない（設定変更として再取得が走らないように）。
+    func pruneHiddenEvents(now: Date) {
+        let limit = now.addingTimeInterval(-Self.hiddenEventRetention).timeIntervalSince1970
+        let kept = hiddenEventKeys.filter { key in
+            guard let seconds = key.split(separator: ".", maxSplits: 1).first.flatMap({ TimeInterval($0) }) else { return false }
+            return seconds >= limit
+        }
+        if kept != hiddenEventKeys {
+            hiddenEventKeys = kept
+        }
     }
 
     var gracePeriod: TimeInterval {
