@@ -1,6 +1,6 @@
 # プライバシーポリシー / Privacy Policy
 
-最終更新: 2026-10-27
+最終更新: 2026-10-28
 
 ## 日本語
 
@@ -10,7 +10,7 @@ AttentionBar は、お使いの Mac 上でカレンダーとリマインダー�
 - **カレンダー・リマインダーの扱い**: macOS の EventKit を通じて端末内で読み取るだけです。内容を保存・送信することはありません。アクセス許可は「システム設定 → プライバシーとセキュリティ」からいつでも取り消せます。
 - **ネットワーク通信**: 行いません。アプリにはネットワークに接続するコードが含まれていません。
 - **外部サービス・解析ツール**: 使用していません。
-- **端末内に保存するもの**: 設定値（先読み時間、通知タイミング、表示するカレンダーの選択、ログイン時に起動するかどうか）のみを macOS の UserDefaults に保存します。
+- **端末内に保存するもの**: 設定値（先読み時間、通知タイミング、表示するカレンダーの選択、ログイン時に起動するかどうか）と、ポップアップで非表示にした予定の開始時刻・タイトルのみを macOS の UserDefaults に保存します。非表示にした予定の記録は、開始から 1 日経つと自動で削除します。
 - **会議リンク**: ポップアップの「開く」を押したときだけ、予定に含まれる URL を既定のブラウザで開きます。それ以外に URL へアクセスすることはありません。
 
 本ポリシーに変更がある場合は、このファイルを更新します。
@@ -25,7 +25,7 @@ AttentionBar is a macOS menu bar app that reads your Calendar and Reminders on y
 - **Calendar and Reminders**: Read locally through macOS EventKit only. Nothing is stored or transmitted. You can revoke access at any time in System Settings → Privacy & Security.
 - **Network**: The app makes no network connections and contains no networking code.
 - **Third-party services or analytics**: None.
-- **Stored on your Mac**: Only your preferences (lookahead window, notification timing, selected calendars, launch at login), kept in macOS UserDefaults.
+- **Stored on your Mac**: Only your preferences (lookahead window, notification timing, selected calendars, launch at login) and the start time and title of events you hide from the popup, kept in macOS UserDefaults. Records of hidden events are deleted automatically one day after the event starts.
 - **Meeting links**: A URL found in an event is opened in your default browser only when you click "Open". The app never accesses URLs on its own.
 
 Changes to this policy will be made by updating this file.
