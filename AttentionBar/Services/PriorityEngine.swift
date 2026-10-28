@@ -30,10 +30,38 @@ enum PriorityEngine {
 
     /// 表示対象のアイテムを優先順に並べて返す。
     static func ranked(from items: [AttentionItem], now: Date, gracePeriod: TimeInterval = gracePeriod) -> [AttentionItem] {
-        items
+        deduplicated(items)
             .compactMap { item in tier(of: item, now: now, gracePeriod: gracePeriod).map { (tier: $0, item: item) } }
             .sorted { ($0.tier, $0.item.priority, $0.item.dueAt) < ($1.tier, $1.item.priority, $1.item.dueAt) }
             .map(\.item)
+    }
+
+    /// 複数のカレンダーに入っている同じ会議（タイトルと開始時刻が同じ予定）を 1 件にまとめる（#45）。
+    /// 会議 URL を持つものを優先して残し、どちらも持つ・持たないなら先に現れたものを残す。
+    /// リマインダーは同名でも別の項目なのでまとめない。
+    static func deduplicated(_ items: [AttentionItem]) -> [AttentionItem] {
+        struct Key: Hashable {
+            let title: String
+            let dueAt: Date
+        }
+        var indexByKey: [Key: Int] = [:]
+        var result: [AttentionItem] = []
+        for item in items {
+            guard item.source == .calendar else {
+                result.append(item)
+                continue
+            }
+            let key = Key(title: item.title, dueAt: item.dueAt)
+            if let index = indexByKey[key] {
+                if result[index].actionURL == nil && item.actionURL != nil {
+                    result[index] = item
+                }
+            } else {
+                indexByKey[key] = result.count
+                result.append(item)
+            }
+        }
+        return result
     }
 
     /// アイテムの優先段。表示対象外なら nil。

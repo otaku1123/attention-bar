@@ -127,3 +127,36 @@ struct RankedTests {
         #expect(PriorityEngine.ranked(from: items, now: now(0)).first?.title == select(items, at: 0))
     }
 }
+
+struct DeduplicationTests {
+    private let meetURL = URL(string: "https://meet.google.com/abc-defg-hij")!
+
+    private func event(_ title: String, at offset: TimeInterval, url: URL? = nil, source: AttentionSource = .calendar) -> AttentionItem {
+        AttentionItem(title: title, dueAt: now(offset), priority: 1, source: source, actionURL: url)
+    }
+
+    @Test func mergesSameTitleAndStart() {
+        let ranked = PriorityEngine.ranked(from: [event("定例", at: 30 * minute), event("定例", at: 30 * minute)], now: now(0))
+        #expect(ranked.count == 1)
+    }
+
+    @Test func keepsItemWithMeetingURL() {
+        let items = [event("定例", at: 30 * minute), event("定例", at: 30 * minute, url: meetURL)]
+        #expect(PriorityEngine.ranked(from: items, now: now(0)).map(\.actionURL) == [meetURL])
+    }
+
+    @Test func keepsDifferentTitleOrStart() {
+        let items = [event("定例", at: 30 * minute), event("定例", at: 60 * minute), event("1on1", at: 30 * minute)]
+        #expect(PriorityEngine.ranked(from: items, now: now(0)).count == 3)
+    }
+
+    @Test func doesNotMergeReminders() {
+        let items = [event("日報", at: 30 * minute, source: .reminder), event("日報", at: 30 * minute, source: .reminder)]
+        #expect(PriorityEngine.ranked(from: items, now: now(0)).count == 2)
+    }
+
+    @Test func doesNotMergeEventWithReminder() {
+        let items = [event("日報", at: 30 * minute), event("日報", at: 30 * minute, source: .reminder)]
+        #expect(PriorityEngine.ranked(from: items, now: now(0)).count == 2)
+    }
+}
