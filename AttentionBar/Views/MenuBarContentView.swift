@@ -59,6 +59,14 @@ struct MenuBarContentView: View {
                                 Label("完了にする", systemImage: "checkmark.circle")
                             }
                         }
+                        if item.source == .calendar {
+                            Button {
+                                store.hide(item)
+                            } label: {
+                                Label("非表示", systemImage: "eye.slash")
+                            }
+                            .help("この予定を表示・通知しない")
+                        }
                     }
                     .padding(.top, 4)
                 }
@@ -98,7 +106,22 @@ struct MenuBarContentView: View {
                             .monospacedDigit()
                     }
                     .font(.callout)
+                    .contextMenu {
+                        if item.source == .calendar {
+                            Button("この予定を非表示") {
+                                store.hide(item)
+                            }
+                        }
+                    }
                 }
+            }
+
+            if !store.settings.hiddenEventKeys.isEmpty {
+                Button("非表示にした予定を戻す（\(store.settings.hiddenEventKeys.count)件）") {
+                    store.settings.unhideAll()
+                }
+                .buttonStyle(.link)
+                .font(.caption)
             }
 
             Divider()
