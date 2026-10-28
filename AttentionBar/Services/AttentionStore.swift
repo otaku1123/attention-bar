@@ -19,7 +19,8 @@ final class AttentionStore: ObservableObject {
     let settings = AppSettings()
 
     private let calendarProvider = CalendarProvider()
-    private lazy var service = AttentionService(providers: [calendarProvider, ReminderProvider()])
+    private let reminderProvider = ReminderProvider()
+    private lazy var service = AttentionService(providers: [calendarProvider, reminderProvider])
     private let notifications = NotificationScheduler()
     private let startAlerts = StartAlertScheduler()
     private var settingsObserver: AnyCancellable?
@@ -68,6 +69,18 @@ final class AttentionStore: ObservableObject {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
             await load()
+        }
+    }
+
+    /// リマインダーを完了にする。保存を待たずに一覧から消し、失敗したら取り直して元に戻す。
+    func complete(_ item: AttentionItem) {
+        guard item.source == .reminder, let id = item.sourceID else { return }
+        items.removeAll { $0.source == .reminder && $0.sourceID == id }
+        do {
+            try reminderProvider.complete(id: id)
+        } catch {
+            print("[AttentionStore] complete failed: \(error)")
+            scheduleReload()
         }
     }
 

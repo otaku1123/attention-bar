@@ -1,6 +1,11 @@
 import Foundation
 import EventKit
 
+enum ReminderProviderError: Error {
+    /// 完了しようとしたリマインダーが見つからない（別の端末で削除された場合など）。
+    case notFound
+}
+
 /// EventKit 経由でリマインダーから期限付きの未完了項目を取得する。
 final class ReminderProvider: AttentionProvider {
     private let store = EKEventStore()
@@ -47,10 +52,20 @@ final class ReminderProvider: AttentionProvider {
                     dueAt: dueAt,
                     priority: 1,
                     source: .reminder,
-                    actionURL: reminder.url
+                    actionURL: reminder.url,
+                    sourceID: reminder.calendarItemIdentifier
                 )
             }
             .sorted { $0.dueAt < $1.dueAt }
+    }
+
+    /// リマインダーを完了にする。保存すると EKEventStoreChanged が届き、再取得される。
+    func complete(id: String) throws {
+        guard let reminder = store.calendarItem(withIdentifier: id) as? EKReminder else {
+            throw ReminderProviderError.notFound
+        }
+        reminder.isCompleted = true
+        try store.save(reminder, commit: true)
     }
 
     private func fetchReminders(matching predicate: NSPredicate) async -> [EKReminder] {
