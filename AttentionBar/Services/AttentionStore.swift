@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppKit
 
 /// UI が参照する状態。取得済みの items と、残り時間計算用の現在時刻を保持する。
 @MainActor
@@ -19,12 +20,14 @@ final class AttentionStore: ObservableObject {
     let settings = AppSettings()
 
     private let calendarProvider = CalendarProvider()
-    private lazy var service = AttentionService(providers: [calendarProvider, ReminderProvider()])
+    private let reminderProvider = ReminderProvider()
+    private lazy var service = AttentionService(providers: [calendarProvider, reminderProvider])
     private let notifications = NotificationScheduler()
     private let startAlerts = StartAlertScheduler()
     private var settingsObserver: AnyCancellable?
+    private var systemObserver: AnyCancellable?
     private var lastLoadedAt: Date?
-    private var timer: AnyCancellable?
+    private var tickTask: Task<Void, Never>?
     private var reloadTask: Task<Void, Never>?
 
     init() {
@@ -39,15 +42,43 @@ final class AttentionStore: ObservableObject {
             self?.scheduleReload()
         }
 
-        timer = Timer.publish(every: 60, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] date in
+        // スリープ中の時間は表示を更新できないため、復帰時や日付・時刻の設定が変わったときは取り直す（#43）
+        let center = NotificationCenter.default
+        systemObserver = Publishers.MergeMany(
+            NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification),
+            center.publisher(for: .NSCalendarDayChanged),
+            center.publisher(for: .NSSystemTimeZoneDidChange),
+            center.publisher(for: .NSSystemClockDidChange)
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            guard let self else { return }
+            now = Date()
+            scheduleReload()
+        }
+
+        // 残り時間は分単位で切り替わるため、起動時刻ではなく分の境界に合わせて更新する（#43）
+        tickTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(Self.secondsUntilNextMinute(from: Date())))
                 guard let self else { return }
-                now = date
-                if let lastLoadedAt, date.timeIntervalSince(lastLoadedAt) >= Self.refreshInterval {
-                    Task { await self.load() }
-                }
+                tick(Date())
             }
+        }
+    }
+
+    private func tick(_ date: Date) {
+        now = date
+        if let lastLoadedAt, date.timeIntervalSince(lastLoadedAt) >= Self.refreshInterval {
+            Task { await load() }
+        }
+    }
+
+    /// 次の分の境界（hh:mm:00）までの秒数。早めに起きて同じ分を表示し直さないよう、少しだけ後ろにずらす。
+    /// 基準日（2001-01-01 00:00:00 UTC）は分の境界で、分単位でないタイムゾーンもないため、秒数の剰余で求められる。
+    nonisolated static func secondsUntilNextMinute(from date: Date) -> TimeInterval {
+        let seconds = date.timeIntervalSinceReferenceDate
+        return 60 - (seconds - 60 * (seconds / 60).rounded(.down)) + 0.05
     }
 
     func load() async {
@@ -78,6 +109,18 @@ final class AttentionStore: ObservableObject {
         guard item.source == .calendar else { return }
         settings.hide(item)
         items.removeAll { $0.source == .calendar && settings.isHidden($0) }
+    }
+
+    /// リマインダーを完了にする。保存を待たずに一覧から消し、失敗したら取り直して元に戻す。
+    func complete(_ item: AttentionItem) {
+        guard item.source == .reminder, let id = item.sourceID else { return }
+        items.removeAll { $0.source == .reminder && $0.sourceID == id }
+        do {
+            try reminderProvider.complete(id: id)
+        } catch {
+            print("[AttentionStore] complete failed: \(error)")
+            scheduleReload()
+        }
     }
 
     /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。

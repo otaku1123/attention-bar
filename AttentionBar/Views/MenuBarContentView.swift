@@ -52,6 +52,13 @@ struct MenuBarContentView: View {
                                 Label("開く", systemImage: "arrow.up.right.square")
                             }
                         }
+                        if item.isCompletable {
+                            Button {
+                                store.complete(item)
+                            } label: {
+                                Label("完了にする", systemImage: "checkmark.circle")
+                            }
+                        }
                         if item.source == .calendar {
                             Button {
                                 store.hide(item)
@@ -78,7 +85,18 @@ struct MenuBarContentView: View {
 
                 ForEach(Array(upcoming.enumerated()), id: \.offset) { _, item in
                     HStack(spacing: 6) {
-                        Text(item.source.emoji)
+                        if item.isCompletable {
+                            Button {
+                                store.complete(item)
+                            } label: {
+                                Image(systemName: "circle")
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                            .help("完了にする")
+                        } else {
+                            Text(item.source.emoji)
+                        }
                         Text(item.title)
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -120,6 +138,12 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+    }
+}
+
+private extension AttentionItem {
+    var isCompletable: Bool {
+        source == .reminder && sourceID != nil
     }
 }
 
