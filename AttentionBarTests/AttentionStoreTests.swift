@@ -87,4 +87,13 @@ struct FormattingTests {
         let target = AttentionItem(title: "x", dueAt: base.addingTimeInterval(secondsUntilDue), priority: 1, source: .calendar, actionURL: nil)
         #expect(target.minutesRemaining(from: base) == expected)
     }
+
+    @Test(arguments: [
+        (0.0, 60.05), (1.0, 59.05), (30.0, 30.05), (59.5, 0.55), (60.0, 60.05),
+    ])
+    func secondsUntilNextMinute(secondsPastMinute: TimeInterval, expected: TimeInterval) {
+        // base は分の境界
+        let delay = AttentionStore.secondsUntilNextMinute(from: base.addingTimeInterval(secondsPastMinute))
+        #expect(abs(delay - expected) < 0.001)
+    }
 }
