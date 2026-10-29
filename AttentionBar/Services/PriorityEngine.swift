@@ -3,12 +3,17 @@ import Foundation
 /// AttentionItem の中から「今ユーザーが気づくべき」1件を選ぶ。
 ///
 /// 上の段ほど優先する。同じ段の中では priority の小さい順、同値なら dueAt の早い順。
-/// 1. 直前・進行中の予定: 開始まで imminentWindow 以内、または開始から gracePeriod 以内
-/// 2. 期限切れのリマインダー: 期限超過 overdueLimit 以内の未完了リマインダー
-/// 3. これからのアイテム: 上記以外で、開始・期限前のもの
+/// 1. 直前・開始直後の予定: 開始まで imminentWindow 以内、または開始から gracePeriod 以内
+/// 2. 進行中の予定: 終了まで表示する予定（tracksUntilEnd）のうち、開始から gracePeriod を過ぎて終了前のもの
+/// 3. 期限切れのリマインダー: 期限超過 overdueLimit 以内の未完了リマインダー
+/// 4. これからのアイテム: 上記以外で、開始・期限前のもの
 enum PriorityEngine {
     /// 予定の開始後もこの時間だけは表示を残し、その後に次のアイテムへ切り替える（既定値。設定で変更できる）。
+    /// 終了まで表示する予定では、開始直後に次の予定より優先する時間になる。
     static let gracePeriod: TimeInterval = 10 * 60
+    /// この長さまでの予定は終了まで残り時間を表示する。これより長い予定（作業ブロックなど）が
+    /// 表示を占拠しないよう、従来どおり gracePeriod で次へ切り替える（#54）。
+    static let trackedDurationLimit: TimeInterval = 2 * 60 * 60
     /// 開始までこの時間以内の予定は、期限切れリマインダーより優先する。
     static let imminentWindow: TimeInterval = 15 * 60
     /// 期限切れリマインダーを表示し続ける上限。放置された古いリマインダーが表示を占拠しないようにする。
@@ -16,6 +21,7 @@ enum PriorityEngine {
 
     enum Tier: Int, Comparable {
         case imminentEvent = 1
+        case ongoingEvent
         case overdueReminder
         case upcoming
 
@@ -64,6 +70,13 @@ enum PriorityEngine {
         return result
     }
 
+    /// 終了まで残り時間を表示する予定か。終了時刻があり、長さが trackedDurationLimit 以内のカレンダーの予定が対象。
+    static func tracksUntilEnd(_ item: AttentionItem) -> Bool {
+        guard item.source == .calendar, let endAt = item.endAt else { return false }
+        let duration = endAt.timeIntervalSince(item.dueAt)
+        return duration > 0 && duration <= trackedDurationLimit
+    }
+
     /// アイテムの優先段。表示対象外なら nil。
     static func tier(of item: AttentionItem, now: Date, gracePeriod: TimeInterval = gracePeriod) -> Tier? {
         // 正の値は開始・期限からの経過秒数、負の値は開始・期限までの残り秒数
@@ -77,6 +90,10 @@ enum PriorityEngine {
             return .upcoming
         case .calendar, .github, .custom:
             if elapsed >= 0 {
+                if tracksUntilEnd(item), let endAt = item.endAt {
+                    guard now < endAt else { return nil }
+                    return elapsed < gracePeriod ? .imminentEvent : .ongoingEvent
+                }
                 return elapsed < gracePeriod ? .imminentEvent : nil
             }
             return -elapsed <= imminentWindow ? .imminentEvent : .upcoming

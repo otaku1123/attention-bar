@@ -161,6 +161,11 @@ final class AttentionStore: ObservableObject {
                 }
                 return "\(item.source.emoji) \(title) 期限超過\(durationText(minutes: elapsed))"
             default:
+                if PriorityEngine.tracksUntilEnd(item), let endAt = item.endAt, endAt > now {
+                    // 切り上げのため、残り 30 秒は「残り1分」
+                    let remaining = Int(ceil(endAt.timeIntervalSince(now) / 60))
+                    return "\(item.source.emoji) \(title) 残り\(durationText(minutes: remaining))"
+                }
                 if elapsed == 0 {
                     return "\(item.source.emoji) \(title) 開始"
                 }
