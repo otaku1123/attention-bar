@@ -15,6 +15,10 @@ struct SettingsView: View {
                         Text(minutes == 0 ? "表示しない" : "\(minutes)分").tag(minutes)
                     }
                 }
+                Text("2時間以内の予定は、終了まで残り時間を表示します（次の予定が15分以内に迫ったら切り替えます）。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Picker("先読み時間", selection: $settings.lookaheadHours) {
                     ForEach(AppSettings.lookaheadChoices, id: \.self) { hours in
                         Text("\(hours)時間先まで").tag(hours)

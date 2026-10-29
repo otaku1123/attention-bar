@@ -65,7 +65,8 @@ final class CalendarProvider: AttentionProvider {
                     dueAt: event.startDate,
                     priority: 1,
                     source: .calendar,
-                    actionURL: actionURL(for: event)
+                    actionURL: actionURL(for: event),
+                    endAt: event.endDate
                 )
             }
     }

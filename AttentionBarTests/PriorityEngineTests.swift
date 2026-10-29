@@ -160,3 +160,60 @@ struct DeduplicationTests {
         #expect(PriorityEngine.ranked(from: items, now: now(0)).count == 2)
     }
 }
+
+/// 終了まで表示する予定（#54）。
+struct OngoingEventTests {
+    private let grace = PriorityEngine.gracePeriod
+
+    private func meeting(_ title: String = "定例", at start: TimeInterval, until end: TimeInterval?) -> AttentionItem {
+        AttentionItem(title: title, dueAt: now(start), priority: 1, source: .calendar, actionURL: nil, endAt: end.map(now))
+    }
+
+    @Test func tracksOnlyCalendarEventsUpToLimit() {
+        #expect(PriorityEngine.tracksUntilEnd(meeting(at: 0, until: 30 * minute)))
+        #expect(PriorityEngine.tracksUntilEnd(meeting(at: 0, until: PriorityEngine.trackedDurationLimit)))
+        #expect(!PriorityEngine.tracksUntilEnd(meeting(at: 0, until: PriorityEngine.trackedDurationLimit + 1)))
+        #expect(!PriorityEngine.tracksUntilEnd(meeting(at: 0, until: nil)))
+        #expect(!PriorityEngine.tracksUntilEnd(meeting(at: 0, until: 0)))
+        let reminder = AttentionItem(title: "x", dueAt: now(0), priority: 1, source: .reminder, actionURL: nil, endAt: now(30 * minute))
+        #expect(!PriorityEngine.tracksUntilEnd(reminder))
+    }
+
+    @Test(arguments: [
+        (-16 * minute, PriorityEngine.Tier?.some(.upcoming)),
+        (0, .imminentEvent),
+        (PriorityEngine.gracePeriod - 1, .imminentEvent),
+        (PriorityEngine.gracePeriod, .ongoingEvent),
+        (30 * minute - 1, .ongoingEvent),
+        (30 * minute, nil),
+    ] as [(TimeInterval, PriorityEngine.Tier?)])
+    func tierOfTrackedMeeting(at offset: TimeInterval, expected: PriorityEngine.Tier?) {
+        #expect(PriorityEngine.tier(of: meeting(at: 0, until: 30 * minute), now: now(offset)) == expected)
+    }
+
+    @Test func longEventSwitchesAfterGracePeriod() {
+        let block = meeting("作業時間", at: 0, until: 3 * 60 * minute)
+        #expect(PriorityEngine.tier(of: block, now: now(grace - 1)) == .imminentEvent)
+        #expect(PriorityEngine.tier(of: block, now: now(grace)) == nil)
+    }
+
+    @Test func shortMeetingDisappearsAtEndEvenWithinGracePeriod() {
+        #expect(PriorityEngine.tier(of: meeting(at: 0, until: 5 * minute), now: now(5 * minute)) == nil)
+    }
+
+    @Test func imminentNextEventBeatsOngoingMeeting() {
+        let items = [meeting("定例", at: 0, until: 30 * minute), meeting("1on1", at: 30 * minute, until: 60 * minute)]
+        #expect(select(items, at: 15 * minute - 1) == "定例")
+        #expect(select(items, at: 15 * minute) == "1on1")
+    }
+
+    @Test func justStartedMeetingBeatsImminentNextEvent() {
+        let items = [meeting("定例", at: 0, until: 30 * minute), meeting("1on1", at: 10 * minute, until: 40 * minute)]
+        #expect(select(items, at: minute) == "定例")
+    }
+
+    @Test func ongoingMeetingBeatsOverdueReminder() {
+        let items = [meeting("定例", at: 0, until: 60 * minute), item("牛乳を買う", at: -60 * minute, source: .reminder)]
+        #expect(select(items, at: 30 * minute) == "定例")
+    }
+}
