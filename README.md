@@ -74,7 +74,7 @@ scripts/release.sh
 ### 期待される結果
 
 - 最後に `source=Notarized Developer ID` と `完了: build/release/AttentionBar-<バージョン>.zip` が表示される
-- バージョンは Xcode の `MARKETING_VERSION`（現在 0.1.0）
+- バージョンは Xcode の `MARKETING_VERSION`（現在 0.2.0）
 
 ## TestFlight で配布
 
@@ -129,8 +129,8 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 ```bash
 git checkout main && git pull
 scripts/release.sh
-gh release create v0.1.0 build/release/AttentionBar-0.1.0.zip \
-    --target main --title "AttentionBar 0.1.0" --generate-notes
+gh release create v0.2.0 build/release/AttentionBar-0.2.0.zip \
+    --target main --title "AttentionBar 0.2.0" --generate-notes
 ```
 
 - `--generate-notes` は前回のタグ以降にマージされた PR からノートを自動生成する

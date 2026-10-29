@@ -195,7 +195,7 @@
 				DEVELOPMENT_TEAM = 8F2U53RA9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.otaku1123.AttentionBarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -213,7 +213,7 @@
 				DEVELOPMENT_TEAM = 8F2U53RA9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.otaku1123.AttentionBarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -278,13 +278,13 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
-				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示し、ポップアップから完了にするためにリマインダーを利用します。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示し、ポップアップから完了にするためにリマインダーを利用します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.otaku1123.AttentionBar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -309,13 +309,13 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "次の予定までの残り時間をメニューバーに表示するためにカレンダーを読み取ります。";
-				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
-				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示するためにリマインダーを読み取ります。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "期限が近いリマインダーをメニューバーに表示し、ポップアップから完了にするためにリマインダーを利用します。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "期限が近いリマインダーをメニューバーに表示し、ポップアップから完了にするためにリマインダーを利用します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.otaku1123.AttentionBar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

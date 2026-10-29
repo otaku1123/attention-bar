@@ -48,4 +48,36 @@ struct AppSettingsTests {
         on.set(true, forKey: "showsStartAlert")
         #expect(AppSettings(defaults: on).startAlertStyle == .panel)
     }
+
+    @Test func hidesEventAndRestores() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        let event = item("定例", at: 30 * 60)
+        settings.hide(event)
+        #expect(settings.isHidden(event))
+        // 同じタイトルでも別の回（開始時刻が違う）は対象外
+        #expect(!settings.isHidden(item("定例", at: 90 * 60)))
+        #expect(AppSettings(defaults: defaults).isHidden(event))
+
+        settings.unhideAll()
+        #expect(!settings.isHidden(event))
+    }
+
+    @Test func prunesHiddenEventsAfterRetention() {
+        let settings = AppSettings(defaults: makeDefaults())
+        let event = item("定例", at: 0)
+        settings.hide(event)
+        settings.pruneHiddenEvents(now: now(AppSettings.hiddenEventRetention))
+        #expect(settings.isHidden(event))
+        settings.pruneHiddenEvents(now: now(AppSettings.hiddenEventRetention + 1))
+        #expect(!settings.isHidden(event))
+    }
+
+    @Test func hiddenEventKeyKeepsTitleWithDots() {
+        let settings = AppSettings(defaults: makeDefaults())
+        let event = item("v1.2 リリース確認", at: 0)
+        settings.hide(event)
+        settings.pruneHiddenEvents(now: now(0))
+        #expect(settings.isHidden(event))
+    }
 }

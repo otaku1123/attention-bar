@@ -44,14 +44,31 @@ struct MenuBarContentView: View {
                     Text("\(item.source == .reminder ? "期限" : "開始"): \(AttentionStore.dueText(item.dueAt, now: store.now))")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                    if let url = item.actionURL {
-                        Button {
-                            NSWorkspace.shared.open(url)
-                        } label: {
-                            Label("開く", systemImage: "arrow.up.right.square")
+                    HStack {
+                        if let url = item.actionURL {
+                            Button {
+                                NSWorkspace.shared.open(url)
+                            } label: {
+                                Label("開く", systemImage: "arrow.up.right.square")
+                            }
                         }
-                        .padding(.top, 4)
+                        if item.isCompletable {
+                            Button {
+                                store.complete(item)
+                            } label: {
+                                Label("完了にする", systemImage: "checkmark.circle")
+                            }
+                        }
+                        if item.source == .calendar {
+                            Button {
+                                store.hide(item)
+                            } label: {
+                                Label("非表示", systemImage: "eye.slash")
+                            }
+                            .help("この予定を表示・通知しない")
+                        }
                     }
+                    .padding(.top, 4)
                 }
             } else {
                 Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません")
@@ -68,7 +85,18 @@ struct MenuBarContentView: View {
 
                 ForEach(Array(upcoming.enumerated()), id: \.offset) { _, item in
                     HStack(spacing: 6) {
-                        Text(item.source.emoji)
+                        if item.isCompletable {
+                            Button {
+                                store.complete(item)
+                            } label: {
+                                Image(systemName: "circle")
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                            .help("完了にする")
+                        } else {
+                            Text(item.source.emoji)
+                        }
                         Text(item.title)
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -78,7 +106,22 @@ struct MenuBarContentView: View {
                             .monospacedDigit()
                     }
                     .font(.callout)
+                    .contextMenu {
+                        if item.source == .calendar {
+                            Button("この予定を非表示") {
+                                store.hide(item)
+                            }
+                        }
+                    }
                 }
+            }
+
+            if !store.settings.hiddenEventKeys.isEmpty {
+                Button("非表示にした予定を戻す（\(store.settings.hiddenEventKeys.count)件）") {
+                    store.settings.unhideAll()
+                }
+                .buttonStyle(.link)
+                .font(.caption)
             }
 
             Divider()
@@ -95,6 +138,12 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+    }
+}
+
+private extension AttentionItem {
+    var isCompletable: Bool {
+        source == .reminder && sourceID != nil
     }
 }
 
