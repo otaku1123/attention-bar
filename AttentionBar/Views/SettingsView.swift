@@ -7,6 +7,14 @@ struct SettingsView: View {
     @StateObject private var launchAtLogin = LaunchAtLogin()
     @State private var calendars: [CalendarOption] = []
 
+    private static func startAlertLeadText(_ seconds: Int) -> String {
+        switch seconds {
+        case 0: "開始時刻"
+        case ..<60: "\(seconds)秒前"
+        default: "\(seconds / 60)分前"
+        }
+    }
+
     var body: some View {
         Form {
             Section("表示") {
@@ -61,6 +69,12 @@ struct SettingsView: View {
                         Text(style.displayName).tag(style)
                     }
                 }
+                Picker("最前面で知らせるタイミング", selection: $settings.startAlertLeadSeconds) {
+                    ForEach(AppSettings.startAlertLeadChoices, id: \.self) { seconds in
+                        Text(Self.startAlertLeadText(seconds)).tag(seconds)
+                    }
+                }
+                .disabled(settings.startAlertStyle == .off)
             }
 
             Section("起動") {

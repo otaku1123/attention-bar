@@ -25,6 +25,7 @@ final class AppSettings: ObservableObject {
         static let lookaheadHours = "lookaheadHours"
         static let notificationLeadMinutes = "notificationLeadMinutes"
         static let startAlertStyle = "startAlertStyle"
+        static let startAlertLeadSeconds = "startAlertLeadSeconds"
         /// 旧設定（ON/OFF）。startAlertStyle が未保存のときだけ引き継ぎに使う。
         static let showsStartAlert = "showsStartAlert"
         static let excludedCalendarIDs = "excludedCalendarIDs"
@@ -39,6 +40,8 @@ final class AppSettings: ObservableObject {
     static let lookaheadChoices = [6, 12, 24, 48]
     /// 0 は「通知しない」。
     static let notificationLeadChoices = [0, 1, 5, 10, 15]
+    /// 0 は開始時刻ちょうど。
+    static let startAlertLeadChoices = [0, 30, 60, 120]
 
     /// 予定の開始後も表示を残す時間（分）。
     @Published var gracePeriodMinutes: Int {
@@ -58,6 +61,11 @@ final class AppSettings: ObservableObject {
     /// 予定の開始時刻に最前面の画面でどう知らせるか。
     @Published var startAlertStyle: StartAlertStyle {
         didSet { defaults.set(startAlertStyle.rawValue, forKey: Key.startAlertStyle) }
+    }
+
+    /// 予定の開始の何秒前に最前面の画面で知らせるか。開始時刻ちょうどだと会議に遅れるため（#53）。
+    @Published var startAlertLeadSeconds: Int {
+        didSet { defaults.set(startAlertLeadSeconds, forKey: Key.startAlertLeadSeconds) }
     }
 
     /// 表示しないカレンダーの calendarIdentifier。後から追加されたカレンダーは表示対象になるよう、除外側を保存する。
@@ -82,6 +90,7 @@ final class AppSettings: ObservableObject {
         } else {
             startAlertStyle = defaults.object(forKey: Key.showsStartAlert) as? Bool == false ? .off : .panel
         }
+        startAlertLeadSeconds = defaults.object(forKey: Key.startAlertLeadSeconds) as? Int ?? 0
         excludedCalendarIDs = Set(defaults.stringArray(forKey: Key.excludedCalendarIDs) ?? [])
         hiddenEventKeys = Set(defaults.stringArray(forKey: Key.hiddenEventKeys) ?? [])
     }
@@ -126,5 +135,9 @@ final class AppSettings: ObservableObject {
 
     var notificationLeadTime: TimeInterval {
         TimeInterval(notificationLeadMinutes * 60)
+    }
+
+    var startAlertLeadTime: TimeInterval {
+        TimeInterval(startAlertLeadSeconds)
     }
 }
