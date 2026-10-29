@@ -41,9 +41,15 @@ struct MenuBarContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.body.weight(.semibold))
-                    Text("\(item.source == .reminder ? "期限" : "開始"): \(AttentionStore.dueText(item.dueAt, now: store.now))")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                    if PriorityEngine.tracksUntilEnd(item), let endAt = item.endAt {
+                        Text("\(AttentionStore.dueText(item.dueAt, now: store.now))〜\(AttentionStore.dueText(endAt, now: store.now))")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("\(item.source == .reminder ? "期限" : "開始"): \(AttentionStore.dueText(item.dueAt, now: store.now))")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                     HStack {
                         if let url = item.actionURL {
                             Button {

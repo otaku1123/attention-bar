@@ -7,6 +7,14 @@ struct SettingsView: View {
     @StateObject private var launchAtLogin = LaunchAtLogin()
     @State private var calendars: [CalendarOption] = []
 
+    private static func startAlertLeadText(_ seconds: Int) -> String {
+        switch seconds {
+        case 0: "開始時刻"
+        case ..<60: "\(seconds)秒前"
+        default: "\(seconds / 60)分前"
+        }
+    }
+
     var body: some View {
         Form {
             Section("表示") {
@@ -15,6 +23,10 @@ struct SettingsView: View {
                         Text(minutes == 0 ? "表示しない" : "\(minutes)分").tag(minutes)
                     }
                 }
+                Text("2時間以内の予定は、終了まで残り時間を表示します（次の予定が15分以内に迫ったら切り替えます）。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Picker("先読み時間", selection: $settings.lookaheadHours) {
                     ForEach(AppSettings.lookaheadChoices, id: \.self) { hours in
                         Text("\(hours)時間先まで").tag(hours)
@@ -57,6 +69,12 @@ struct SettingsView: View {
                         Text(style.displayName).tag(style)
                     }
                 }
+                Picker("最前面で知らせるタイミング", selection: $settings.startAlertLeadSeconds) {
+                    ForEach(AppSettings.startAlertLeadChoices, id: \.self) { seconds in
+                        Text(Self.startAlertLeadText(seconds)).tag(seconds)
+                    }
+                }
+                .disabled(settings.startAlertStyle == .off)
             }
 
             Section("起動") {

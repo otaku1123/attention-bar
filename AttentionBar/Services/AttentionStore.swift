@@ -90,7 +90,7 @@ final class AttentionStore: ObservableObject {
         // 非表示にした予定は、通知・開始時刻のパネルの対象からも外す
         items = result.items.filter { !($0.source == .calendar && settings.isHidden($0)) }
         deniedSources = result.deniedSources
-        startAlerts.schedule(items, now: now, style: settings.startAlertStyle)
+        startAlerts.schedule(items, now: now, style: settings.startAlertStyle, leadTime: settings.startAlertLeadTime)
         await notifications.schedule(items, now: now, leadTime: settings.notificationLeadTime)
     }
 
@@ -161,6 +161,11 @@ final class AttentionStore: ObservableObject {
                 }
                 return "\(item.source.emoji) \(title) 期限超過\(durationText(minutes: elapsed))"
             default:
+                if PriorityEngine.tracksUntilEnd(item), let endAt = item.endAt, endAt > now {
+                    // 切り上げのため、残り 30 秒は「残り1分」
+                    let remaining = Int(ceil(endAt.timeIntervalSince(now) / 60))
+                    return "\(item.source.emoji) \(title) 残り\(durationText(minutes: remaining))"
+                }
                 if elapsed == 0 {
                     return "\(item.source.emoji) \(title) 開始"
                 }

@@ -18,6 +18,7 @@ struct AppSettingsTests {
         #expect(settings.lookahead == 24 * 60 * 60)
         #expect(settings.notificationLeadTime == 5 * 60)
         #expect(settings.startAlertStyle == .panel)
+        #expect(settings.startAlertLeadTime == 0)
         #expect(settings.excludedCalendarIDs.isEmpty)
     }
 
@@ -28,6 +29,7 @@ struct AppSettingsTests {
         settings.lookaheadHours = 48
         settings.notificationLeadMinutes = 0
         settings.startAlertStyle = .fullScreen
+        settings.startAlertLeadSeconds = 30
         settings.excludedCalendarIDs = ["work", "holidays"]
 
         let restored = AppSettings(defaults: defaults)
@@ -35,6 +37,7 @@ struct AppSettingsTests {
         #expect(restored.lookaheadHours == 48)
         #expect(restored.notificationLeadMinutes == 0)
         #expect(restored.startAlertStyle == .fullScreen)
+        #expect(restored.startAlertLeadTime == 30)
         #expect(restored.excludedCalendarIDs == ["work", "holidays"])
     }
 

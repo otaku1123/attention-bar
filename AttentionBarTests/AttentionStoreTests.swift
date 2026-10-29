@@ -41,6 +41,18 @@ struct MenuBarTitleTests {
         #expect(title(reminder, at: 125 * 60) == "✅ 牛乳を買う 期限超過2時間5分")
     }
 
+    @Test func remainingTimeOfTrackedMeeting() {
+        let meeting = AttentionItem(title: "定例ミーティング", dueAt: now(0), priority: 1, source: .calendar, actionURL: nil, endAt: now(30 * 60))
+        #expect(title(meeting, at: 0) == "📅 定例ミーティ… 残り30分")
+        #expect(title(meeting, at: 3 * 60) == "📅 定例ミーティ… 残り27分")
+        #expect(title(meeting, at: 30 * 60 - 30) == "📅 定例ミーティ… 残り1分")
+    }
+
+    @Test func longEventShowsElapsedTime() {
+        let block = AttentionItem(title: "定例ミーティング", dueAt: now(0), priority: 1, source: .calendar, actionURL: nil, endAt: now(3 * 60 * 60))
+        #expect(title(block, at: 3 * 60) == "📅 定例ミーティ… 3分経過")
+    }
+
     @Test func truncatesLongTitleAfterStart() {
         let long = item("【確認用】猶予時間の切り替えテスト予定", at: 0)
         #expect(title(long, at: 60) == "📅 【確認用】猶… 1分経過")
