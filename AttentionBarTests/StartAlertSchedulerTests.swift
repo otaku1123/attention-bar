@@ -27,4 +27,22 @@ struct StartAlertPlanTests {
         #expect(a.first?.identifier == b.first?.identifier)
         #expect(a.first?.identifier != moved.first?.identifier)
     }
+
+    @Test func firesLeadTimeBeforeStart() {
+        let plans = StartAlertScheduler.plan(for: [item("会議", at: 30 * minute)], now: now(0), leadTime: minute)
+        #expect(plans.first?.fireDate == now(29 * minute))
+    }
+
+    /// 表示時刻を過ぎていても、開始前なら対象にする（すぐに表示される）。
+    @Test func plansEventStartingWithinLeadTime() {
+        let plans = StartAlertScheduler.plan(for: [item("会議", at: 30)], now: now(0), leadTime: minute)
+        #expect(plans.count == 1)
+        #expect(plans.first?.fireDate == now(-30))
+    }
+
+    @Test func identifierDoesNotDependOnLeadTime() {
+        let onTime = StartAlertScheduler.plan(for: [item("会議", at: 30 * minute)], now: now(0))
+        let early = StartAlertScheduler.plan(for: [item("会議", at: 30 * minute)], now: now(0), leadTime: minute)
+        #expect(onTime.first?.identifier == early.first?.identifier)
+    }
 }

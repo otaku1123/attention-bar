@@ -99,7 +99,8 @@ private struct StartAlertView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("予定の時刻です", systemImage: "bell.fill")
+            // 開始前に知らせる設定（#53）では、まだ始まっていない
+            Label(item.dueAt > Date() ? "まもなく開始します" : "予定の時刻です", systemImage: "bell.fill")
                 .font(.headline)
                 .foregroundStyle(.orange)
 
