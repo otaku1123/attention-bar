@@ -14,7 +14,7 @@ struct MenuBarContentView: View {
             if !store.deniedSources.isEmpty {
                 ForEach(Array(store.deniedSources), id: \.self) { source in
                     VStack(alignment: .leading, spacing: 6) {
-                        Label("\(source.displayName)へのアクセスが許可されていません", systemImage: "exclamationmark.triangle")
+                        Label("\(source.displayName())へのアクセスが許可されていません", systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                         if let url = source.privacySettingsURL {
@@ -46,7 +46,8 @@ struct MenuBarContentView: View {
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("\(item.source == .reminder ? "期限" : "開始"): \(AttentionStore.dueText(item.dueAt, now: store.now))")
+                        let due = AttentionStore.dueText(item.dueAt, now: store.now)
+                        Text(item.source == .reminder ? "期限: \(due)" : "開始: \(due)" as LocalizedStringKey)
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -77,7 +78,7 @@ struct MenuBarContentView: View {
                     .padding(.top, 4)
                 }
             } else {
-                Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません")
+                Text(store.deniedSources.isEmpty ? "予定はありません" : "予定を取得できません" as LocalizedStringKey)
                     .foregroundStyle(.secondary)
             }
 

@@ -141,14 +141,16 @@ final class AttentionStore: ObservableObject {
         Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now)
     }
 
-    nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date) -> String {
+    nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date, localization: Localization = .current) -> String {
+        let l = localization
         guard let item else {
             // 他ソースのアイテムがあればそちらを優先し、何もないときだけ権限不足を表示する
             if let source = deniedSources.first {
-                return "\(source.emoji) \(source.displayName)権限なし"
+                return "\(source.emoji) " + l.string("\(source.displayName(l))権限なし")
             }
-            return "📅 予定なし"
+            return "📅 " + l.string("予定なし")
         }
+        let emoji = item.source.emoji
         let minutes = item.minutesRemaining(from: now)
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
@@ -157,23 +159,23 @@ final class AttentionStore: ObservableObject {
             switch item.source {
             case .reminder:
                 if elapsed == 0 {
-                    return "\(item.source.emoji) \(title) 期限"
+                    return "\(emoji) " + l.string("\(title) 期限")
                 }
-                return "\(item.source.emoji) \(title) 期限超過\(durationText(minutes: elapsed))"
+                return "\(emoji) " + l.string("\(title) 期限超過\(durationText(minutes: elapsed, localization: l))")
             default:
                 if PriorityEngine.tracksUntilEnd(item), let endAt = item.endAt, endAt > now {
                     // 切り上げのため、残り 30 秒は「残り1分」
                     let remaining = Int(ceil(endAt.timeIntervalSince(now) / 60))
-                    return "\(item.source.emoji) \(title) 残り\(durationText(minutes: remaining))"
+                    return "\(emoji) " + l.string("\(title) 残り\(durationText(minutes: remaining, localization: l))")
                 }
                 if elapsed == 0 {
-                    return "\(item.source.emoji) \(title) 開始"
+                    return "\(emoji) " + l.string("\(title) 開始")
                 }
-                return "\(item.source.emoji) \(title) \(elapsed)分経過"
+                return "\(emoji) " + l.string("\(title) \(elapsed)分経過")
             }
         }
-        let label = item.source == .reminder ? "期限まで" : "次の予定まで"
-        return "\(item.source.emoji) \(label)\(durationText(minutes: minutes))"
+        let duration = durationText(minutes: minutes, localization: l)
+        return "\(emoji) " + (item.source == .reminder ? l.string("期限まで\(duration)") : l.string("次の予定まで\(duration)"))
     }
 
     /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。
@@ -182,30 +184,38 @@ final class AttentionStore: ObservableObject {
     }
 
     /// 今日は「10:00」、前後 1 日は「昨日 18:00」「明日 9:00」、それ以外は「10/28 9:00」のように表示する。
-    nonisolated static func dueText(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
+    /// 時刻の書式（12 / 24 時間制など）は言語・地域に合わせる。
+    nonisolated static func dueText(_ date: Date, now: Date, calendar: Calendar = .current, localization: Localization = .current) -> String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.timeZone = calendar.timeZone
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "H:mm"
+        formatter.locale = localization.locale
+        formatter.setLocalizedDateFormatFromTemplate("jmm")
         let time = formatter.string(from: date)
 
         let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
         switch days {
         case 0: return time
-        case -1: return "昨日 \(time)"
-        case 1: return "明日 \(time)"
+        case -1: return localization.string("昨日 \(time)")
+        case 1: return localization.string("明日 \(time)")
         default:
-            formatter.dateFormat = "M/d H:mm"
+            formatter.setLocalizedDateFormatFromTemplate("Mdjmm")
             return formatter.string(from: date)
         }
     }
 
     /// 60分未満は「18分」、以上は「1時間20分」「5時間」のように表示する。
-    nonisolated static func durationText(minutes: Int) -> String {
-        guard minutes >= 60 else { return "\(minutes)分" }
+    /// メニューバーの幅を取らないよう英語は「18m」「1h 20m」と短く書くため、設定画面の「N分」とはキーを分ける。
+    nonisolated static func durationText(minutes: Int, localization: Localization = .current) -> String {
+        let (bundle, locale) = (localization.bundle, localization.locale)
+        guard minutes >= 60 else {
+            return String(localized: "duration.minutes", defaultValue: "\(minutes)分", bundle: bundle, locale: locale)
+        }
         let hours = minutes / 60
         let rest = minutes % 60
-        return rest == 0 ? "\(hours)時間" : "\(hours)時間\(rest)分"
+        if rest == 0 {
+            return String(localized: "duration.hours", defaultValue: "\(hours)時間", bundle: bundle, locale: locale)
+        }
+        return String(localized: "duration.hoursMinutes", defaultValue: "\(hours)時間\(rest)分", bundle: bundle, locale: locale)
     }
 }

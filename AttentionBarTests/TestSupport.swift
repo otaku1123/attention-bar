@@ -13,6 +13,10 @@ func item(
     AttentionItem(title: title, dueAt: base.addingTimeInterval(offset), priority: priority, source: source, actionURL: nil)
 }
 
+/// 表示文字列のテストは、実行環境の言語に依存しないよう言語を固定する（#61）。
+let japanese = Localization(language: "ja")
+let english = Localization(language: "en")
+
 func now(_ offset: TimeInterval) -> Date {
     base.addingTimeInterval(offset)
 }

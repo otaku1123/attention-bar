@@ -21,12 +21,12 @@ enum AttentionProviderError: Error {
 
 /// 権限エラーの表示用。
 extension AttentionSource {
-    var displayName: String {
+    func displayName(_ localization: Localization = .current) -> String {
         switch self {
-        case .calendar: return "カレンダー"
-        case .reminder: return "リマインダー"
+        case .calendar: return localization.string("カレンダー")
+        case .reminder: return localization.string("リマインダー")
         case .github: return "GitHub"
-        case .custom: return "カスタム"
+        case .custom: return localization.string("カスタム")
         }
     }
 

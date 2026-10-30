@@ -48,7 +48,7 @@ final class ReminderProvider: AttentionProvider {
                 else { return nil }
 
                 return AttentionItem(
-                    title: reminder.title ?? "(無題のリマインダー)",
+                    title: reminder.title ?? String(localized: "(無題のリマインダー)"),
                     dueAt: dueAt,
                     priority: 1,
                     source: .reminder,
