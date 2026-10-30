@@ -63,18 +63,18 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// 通知するアイテムと時刻を決める。通知時刻を過ぎたものは対象外。
-    nonisolated static func plan(for items: [AttentionItem], now: Date, leadTime: TimeInterval) -> [Plan] {
+    nonisolated static func plan(for items: [AttentionItem], now: Date, leadTime: TimeInterval, localization: Localization = .current) -> [Plan] {
         guard leadTime > 0 else { return [] }
         return items
             .filter { $0.source == .calendar }
             .compactMap { item in
                 let fireDate = item.dueAt.addingTimeInterval(-leadTime)
                 guard fireDate > now else { return nil }
-                let time = item.dueAt.formatted(date: .omitted, time: .shortened)
+                let time = item.dueAt.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(localization.locale))
                 return Plan(
                     identifier: "\(identifierPrefix)\(item.source).\(Int(item.dueAt.timeIntervalSince1970)).\(item.title)",
                     title: item.title,
-                    body: "\(Int(leadTime / 60))分後に開始（\(time)）",
+                    body: localization.string("\(Int(leadTime / 60))分後に開始（\(time)）"),
                     fireDate: fireDate
                 )
             }

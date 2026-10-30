@@ -9,9 +9,9 @@ struct SettingsView: View {
 
     private static func startAlertLeadText(_ seconds: Int) -> String {
         switch seconds {
-        case 0: "開始時刻"
-        case ..<60: "\(seconds)秒前"
-        default: "\(seconds / 60)分前"
+        case 0: String(localized: "開始時刻")
+        case ..<60: String(localized: "\(seconds)秒前")
+        default: String(localized: "\(seconds / 60)分前")
         }
     }
 
@@ -20,7 +20,7 @@ struct SettingsView: View {
             Section("表示") {
                 Picker("予定の開始後も表示する時間", selection: $settings.gracePeriodMinutes) {
                     ForEach(AppSettings.gracePeriodChoices, id: \.self) { minutes in
-                        Text(minutes == 0 ? "表示しない" : "\(minutes)分").tag(minutes)
+                        Text(minutes == 0 ? "表示しない" : "\(minutes)分" as LocalizedStringKey).tag(minutes)
                     }
                 }
                 Text("2時間以内の予定は、終了まで残り時間を表示します（次の予定が15分以内に迫ったら切り替えます）。")
@@ -61,7 +61,7 @@ struct SettingsView: View {
             Section("通知") {
                 Picker("予定の開始前に通知", selection: $settings.notificationLeadMinutes) {
                     ForEach(AppSettings.notificationLeadChoices, id: \.self) { minutes in
-                        Text(minutes == 0 ? "通知しない" : "\(minutes)分前").tag(minutes)
+                        Text(minutes == 0 ? "通知しない" : "\(minutes)分前" as LocalizedStringKey).tag(minutes)
                     }
                 }
                 Picker("予定の開始時刻に最前面で知らせる", selection: $settings.startAlertStyle) {

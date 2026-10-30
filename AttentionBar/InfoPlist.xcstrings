@@ -1,0 +1,52 @@
+{
+  "sourceLanguage" : "ja",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "shouldTranslate" : false
+    },
+    "NSCalendarsFullAccessUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads your calendars to show the time left until your next event in the menu bar."
+          }
+        }
+      }
+    },
+    "NSCalendarsUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads your calendars to show the time left until your next event in the menu bar."
+          }
+        }
+      }
+    },
+    "NSRemindersFullAccessUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses Reminders to show reminders that are due soon in the menu bar and to mark them as done from the popup."
+          }
+        }
+      }
+    },
+    "NSRemindersUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses Reminders to show reminders that are due soon in the menu bar and to mark them as done from the popup."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

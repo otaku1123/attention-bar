@@ -3,8 +3,8 @@ import Testing
 @testable import AttentionBar
 
 struct MenuBarTitleTests {
-    private func title(_ item: AttentionItem?, denied: Set<AttentionSource> = [], at offset: TimeInterval) -> String {
-        AttentionStore.menuBarTitle(item: item, deniedSources: denied, now: now(offset))
+    private func title(_ item: AttentionItem?, denied: Set<AttentionSource> = [], at offset: TimeInterval, localization: Localization = japanese) -> String {
+        AttentionStore.menuBarTitle(item: item, deniedSources: denied, now: now(offset), localization: localization)
     }
 
     @Test func showsNoItem() {
@@ -57,6 +57,20 @@ struct MenuBarTitleTests {
         let long = item("【確認用】猶予時間の切り替えテスト予定", at: 0)
         #expect(title(long, at: 60) == "📅 【確認用】猶… 1分経過")
     }
+
+    @Test func showsInEnglish() {
+        let reminder = item("Milk", at: 0, source: .reminder)
+        let meeting = AttentionItem(title: "Sync", dueAt: now(0), priority: 1, source: .calendar, actionURL: nil, endAt: now(30 * 60))
+        #expect(title(nil, at: 0, localization: english) == "📅 No events")
+        #expect(title(nil, denied: [.calendar], at: 0, localization: english) == "📅 No Calendars access")
+        #expect(title(item(at: 80 * 60), at: 0, localization: english) == "📅 Next in 1h 20m")
+        #expect(title(item("Sync", at: 0), at: 30, localization: english) == "📅 Sync now")
+        #expect(title(item("Sync", at: 0), at: 3 * 60, localization: english) == "📅 Sync 3m ago")
+        #expect(title(meeting, at: 3 * 60, localization: english) == "📅 Sync 27m left")
+        #expect(title(reminder, at: -5 * 60, localization: english) == "✅ Due in 5m")
+        #expect(title(reminder, at: 30, localization: english) == "✅ Milk due")
+        #expect(title(reminder, at: 125 * 60, localization: english) == "✅ Milk overdue 2h 5m")
+    }
 }
 
 struct FormattingTests {
@@ -65,7 +79,14 @@ struct FormattingTests {
         (80, "1時間20分"), (120, "2時間"), (1439, "23時間59分"),
     ])
     func durationText(minutes: Int, expected: String) {
-        #expect(AttentionStore.durationText(minutes: minutes) == expected)
+        #expect(AttentionStore.durationText(minutes: minutes, localization: japanese) == expected)
+    }
+
+    @Test(arguments: [
+        (1, "1m"), (60, "1h"), (80, "1h 20m"),
+    ])
+    func durationTextInEnglish(minutes: Int, expected: String) {
+        #expect(AttentionStore.durationText(minutes: minutes, localization: english) == expected)
     }
 
     @Test(arguments: [
@@ -84,12 +105,27 @@ struct FormattingTests {
         (2880, "10/30 10:00"), (-2880, "10/26 10:00"),
     ] as [(TimeInterval, String)])
     func dueText(minutesFromNow: TimeInterval, expected: String) {
+        #expect(dueText(minutesFromNow: minutesFromNow, localization: japanese) == expected)
+    }
+
+    @Test(arguments: [
+        // AM / PM の前は通常の空白ではなく U+202F（狭いノーブレークスペース）
+        (0, "10:00\u{202F}AM"), (780, "11:00\u{202F}PM"), (-601, "Yesterday 11:59\u{202F}PM"),
+        (840, "Tomorrow 12:00\u{202F}AM"), (2880, "10/30, 10:00\u{202F}AM"),
+    ] as [(TimeInterval, String)])
+    func dueTextInEnglish(minutesFromNow: TimeInterval, expected: String) {
+        // 地域を含めないと 12 / 24 時間制が実行環境で変わるため、米国英語に固定する
+        let localization = Localization(bundle: english.bundle, locale: Locale(identifier: "en_US"))
+        #expect(dueText(minutesFromNow: minutesFromNow, localization: localization) == expected)
+    }
+
+    private func dueText(minutesFromNow: TimeInterval, localization: Localization) -> String {
         // 2026-10-28 10:00 (JST) を基準にする
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Tokyo")!
         let reference = calendar.date(from: DateComponents(year: 2026, month: 10, day: 28, hour: 10))!
         let date = reference.addingTimeInterval(minutesFromNow * 60)
-        #expect(AttentionStore.dueText(date, now: reference, calendar: calendar) == expected)
+        return AttentionStore.dueText(date, now: reference, calendar: calendar, localization: localization)
     }
 
     @Test(arguments: [

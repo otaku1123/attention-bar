@@ -61,7 +61,7 @@ final class CalendarProvider: AttentionProvider {
             .sorted { $0.startDate < $1.startDate }
             .map { event in
                 AttentionItem(
-                    title: event.title ?? "(無題の予定)",
+                    title: event.title ?? String(localized: "(無題の予定)"),
                     dueAt: event.startDate,
                     priority: 1,
                     source: .calendar,
@@ -78,7 +78,7 @@ final class CalendarProvider: AttentionProvider {
                 CalendarOption(
                     id: calendar.calendarIdentifier,
                     title: calendar.title,
-                    sourceTitle: calendar.source?.title ?? "その他",
+                    sourceTitle: calendar.source?.title ?? String(localized: "その他"),
                     color: calendar.cgColor
                 )
             }
@@ -97,8 +97,40 @@ final class CalendarProvider: AttentionProvider {
         event.attendees?.first(where: \.isCurrentUser)?.participantStatus == .declined
     }
 
-    /// 会議サービスのホスト。メモ内の資料リンクなどを拾わないよう、場所・メモからはこれらのみ抽出する。
-    private static let meetingHosts = ["meet.google.com", "zoom.us", "teams.microsoft.com", "teams.live.com", "webex.com"]
+    /// 会議サービスの URL のパターン。メモ内の資料リンクなどを拾わないよう、場所・メモからはこれらのみ抽出する。
+    struct MeetingPattern {
+        /// サブドメイン（us02web.zoom.us など）も一致とみなす。
+        let host: String
+        /// 同じホストで会議以外のページもあるサービスは、パスの先頭も見る。
+        var pathPrefix: String? = nil
+
+        func matches(_ url: URL) -> Bool {
+            guard let urlHost = url.host?.lowercased(), urlHost == host || urlHost.hasSuffix("." + host) else { return false }
+            guard let pathPrefix else { return true }
+            return url.path.lowercased().hasPrefix(pathPrefix)
+        }
+    }
+
+    static let meetingPatterns: [MeetingPattern] = [
+        MeetingPattern(host: "meet.google.com"),
+        MeetingPattern(host: "zoom.us"),
+        MeetingPattern(host: "zoomgov.com"),
+        MeetingPattern(host: "teams.microsoft.com"),
+        MeetingPattern(host: "teams.live.com"),
+        MeetingPattern(host: "teams.cloud.microsoft"),
+        MeetingPattern(host: "webex.com"),
+        // app.slack.com はメッセージのリンクにも使われるため、ハドルだけを対象にする
+        MeetingPattern(host: "app.slack.com", pathPrefix: "/huddle/"),
+        MeetingPattern(host: "chime.aws"),
+        MeetingPattern(host: "whereby.com"),
+        MeetingPattern(host: "meet.jit.si"),
+        MeetingPattern(host: "meet.goto.com"),
+        MeetingPattern(host: "gotomeeting.com"),
+        MeetingPattern(host: "join.skype.com"),
+        MeetingPattern(host: "meeting.zoho.com"),
+        MeetingPattern(host: "meetings.ringcentral.com"),
+        MeetingPattern(host: "v.ringcentral.com"),
+    ]
 
     /// event.url を優先し、なければ場所・メモに書かれた会議URLを返す。
     /// Google Calendar の同期予定では Meet のリンクが url ではなくメモ・場所に入っていることが多いため。
@@ -107,15 +139,17 @@ final class CalendarProvider: AttentionProvider {
             return url
         }
         let text = [event.location, event.notes].compactMap { $0 }.joined(separator: "\n")
+        return Self.meetingURL(in: text)
+    }
+
+    /// テキスト中で最初に現れる会議 URL。
+    static func meetingURL(in text: String) -> URL? {
         guard !text.isEmpty,
               let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
         else { return nil }
 
         return detector.matches(in: text, range: NSRange(text.startIndex..., in: text))
             .compactMap(\.url)
-            .first { url in
-                guard let host = url.host?.lowercased() else { return false }
-                return Self.meetingHosts.contains { host == $0 || host.hasSuffix("." + $0) }
-            }
+            .first { url in meetingPatterns.contains { $0.matches(url) } }
     }
 }
