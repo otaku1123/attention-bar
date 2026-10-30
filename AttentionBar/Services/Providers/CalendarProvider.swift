@@ -61,7 +61,7 @@ final class CalendarProvider: AttentionProvider {
             .sorted { $0.startDate < $1.startDate }
             .map { event in
                 AttentionItem(
-                    title: event.title ?? "(無題の予定)",
+                    title: event.title ?? String(localized: "(無題の予定)"),
                     dueAt: event.startDate,
                     priority: 1,
                     source: .calendar,
@@ -78,7 +78,7 @@ final class CalendarProvider: AttentionProvider {
                 CalendarOption(
                     id: calendar.calendarIdentifier,
                     title: calendar.title,
-                    sourceTitle: calendar.source?.title ?? "その他",
+                    sourceTitle: calendar.source?.title ?? String(localized: "その他"),
                     color: calendar.cgColor
                 )
             }

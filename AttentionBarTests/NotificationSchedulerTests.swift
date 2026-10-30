@@ -6,8 +6,8 @@ struct NotificationPlanTests {
     private let minute: TimeInterval = 60
     private let leadTime: TimeInterval = 5 * 60
 
-    private func plan(_ items: [AttentionItem], at offset: TimeInterval, leadTime: TimeInterval? = nil) -> [NotificationScheduler.Plan] {
-        NotificationScheduler.plan(for: items, now: now(offset), leadTime: leadTime ?? self.leadTime)
+    private func plan(_ items: [AttentionItem], at offset: TimeInterval, leadTime: TimeInterval? = nil, localization: Localization = japanese) -> [NotificationScheduler.Plan] {
+        NotificationScheduler.plan(for: items, now: now(offset), leadTime: leadTime ?? self.leadTime, localization: localization)
     }
 
     @Test func notifiesCalendarEventsLeadTimeBeforeStart() {
@@ -42,5 +42,10 @@ struct NotificationPlanTests {
         let plans = plan([item("会議", at: 30 * minute)], at: 0, leadTime: 10 * minute)
         #expect(plans.first?.fireDate == now(20 * minute))
         #expect(plans.first?.body.hasPrefix("10分後に開始") == true)
+    }
+
+    @Test func bodyInEnglish() {
+        let plans = plan([item("Standup", at: 30 * minute)], at: 0, leadTime: 10 * minute, localization: english)
+        #expect(plans.first?.body.hasPrefix("Starts in 10 min (") == true)
     }
 }

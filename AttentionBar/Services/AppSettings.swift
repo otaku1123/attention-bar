@@ -10,9 +10,9 @@ enum StartAlertStyle: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .off: "知らせない"
-        case .panel: "パネル"
-        case .fullScreen: "全画面"
+        case .off: String(localized: "知らせない")
+        case .panel: String(localized: "パネル")
+        case .fullScreen: String(localized: "全画面")
         }
     }
 }
