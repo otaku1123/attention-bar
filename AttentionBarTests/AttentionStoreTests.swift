@@ -70,6 +70,8 @@ struct MenuBarTitleTests {
         #expect(title(reminder, at: -5 * 60, localization: english) == "✅ Due in 5m")
         #expect(title(reminder, at: 30, localization: english) == "✅ Milk due")
         #expect(title(reminder, at: 125 * 60, localization: english) == "✅ Milk overdue 2h 5m")
+        // 英語は全角 6 文字分の幅（半角 12 文字）まで表示する
+        #expect(title(item("Weekly sync with design", at: 0), at: 60, localization: english) == "📅 Weekly sync… 1m ago")
     }
 }
 
@@ -90,13 +92,18 @@ struct FormattingTests {
     }
 
     @Test(arguments: [
-        ("定例ミーティング", "定例ミーティング"),
-        ("123456789012345", "123456789012345"),
-        ("1234567890123456", "123456789012345…"),
-        ("Weekly sync with design team", "Weekly sync wit…"),
+        ("定例ミーティング", "定例ミーティ…"),
+        ("定例ミーティ", "定例ミーティ"),
+        ("定例MTG", "定例MTG"),
+        ("123456789012", "123456789012"),
+        ("1234567890123", "123456789012…"),
+        ("Weekly sync with design team", "Weekly sync…"),
+        ("第3回 Design Review", "第3回 Design…"),
+        ("🎉 Party planning", "🎉 Party pla…"),
+        ("ＡＢＣ全角英字テスト", "ＡＢＣ全角英…"),
     ])
     func truncated(text: String, expected: String) {
-        #expect(AttentionStore.truncated(text, maxLength: 15) == expected)
+        #expect(AttentionStore.truncated(text, maxWidth: 12) == expected)
     }
 
     @Test(arguments: [
