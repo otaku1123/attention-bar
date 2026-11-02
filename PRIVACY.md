@@ -1,6 +1,6 @@
 # プライバシーポリシー / Privacy Policy
 
-最終更新: 2026-10-28
+最終更新: 2026-11-02
 
 ## 日本語
 
@@ -22,7 +22,7 @@ AttentionBar は、お使いの Mac 上でカレンダーとリマインダー�
 AttentionBar is a macOS menu bar app that reads your Calendar and Reminders on your Mac and shows what needs your attention next.
 
 - **Data collected**: None.
-- **Calendar and Reminders**: Read locally through macOS EventKit. The only change the app makes is marking a reminder as completed when you click "Complete" in the popup. Apart from what is listed under "Stored on your Mac" below, nothing is stored in the app, and nothing is ever transmitted. You can revoke access at any time in System Settings → Privacy & Security.
+- **Calendar and Reminders**: Read locally through macOS EventKit. The only change the app makes is marking a reminder as completed when you click "Mark as Done" in the popup. Apart from what is listed under "Stored on your Mac" below, nothing is stored in the app, and nothing is ever transmitted. You can revoke access at any time in System Settings → Privacy & Security.
 - **Network**: The app makes no network connections and contains no networking code.
 - **Third-party services or analytics**: None.
 - **Stored on your Mac**: Only your preferences (lookahead window, notification timing, selected calendars, launch at login) and the start time and title of events you hide from the popup, kept in macOS UserDefaults. Records of hidden events are deleted automatically one day after the event starts.
