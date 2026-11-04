@@ -7,9 +7,10 @@ import AppKit
 final class AttentionStore: ObservableObject {
     /// Provider から再取得する間隔。
     private static let refreshInterval: TimeInterval = 5 * 60
-    /// メニューバーに出すタイトルの最大文字数。超えた分は「…」で省略する。
+    /// メニューバーに出すタイトルの最大幅（全角 1 文字 = 2、半角 1 文字 = 1）。超えた分は「…」で省略する。
     /// 会議中はマイク等のインジケータが増えて幅が足りなくなり、macOS にアイコンごと隠されるため短めにする（#35）。
-    private nonisolated static let menuBarTitleMaxLength = 6
+    /// 文字数で数えると英語が短くなりすぎるため、全角 6 文字分の幅で数える（#65）。
+    private nonisolated static let menuBarTitleMaxWidth = 12
     /// ポップアップに一覧表示する最大件数。
     private static let listLimit = 5
 
@@ -155,7 +156,7 @@ final class AttentionStore: ObservableObject {
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
             let elapsed = -minutes
-            let title = truncated(item.title, maxLength: menuBarTitleMaxLength)
+            let title = truncated(item.title, maxWidth: menuBarTitleMaxWidth)
             switch item.source {
             case .reminder:
                 if elapsed == 0 {
@@ -178,9 +179,43 @@ final class AttentionStore: ObservableObject {
         return "\(emoji) " + (item.source == .reminder ? l.string("期限まで\(duration)") : l.string("次の予定まで\(duration)"))
     }
 
-    /// maxLength 文字を超える場合は先頭 maxLength 文字に「…」を付ける。
-    nonisolated static func truncated(_ text: String, maxLength: Int) -> String {
-        text.count > maxLength ? String(text.prefix(maxLength)) + "…" : text
+    /// 表示幅が maxWidth を超える場合は、幅に収まる先頭部分に「…」を付ける。
+    nonisolated static func truncated(_ text: String, maxWidth: Int) -> String {
+        var width = 0
+        for index in text.indices {
+            width += displayWidth(of: text[index])
+            if width > maxWidth {
+                // 「Weekly sync …」のように空白の直後で切れたときは空白を詰める
+                var head = text[..<index]
+                while head.last == " " { head = head.dropLast() }
+                return String(head) + "…"
+            }
+        }
+        return text
+    }
+
+    /// 全角（CJK・かな・ハングル・全角記号・絵文字）は 2、それ以外は 1。
+    /// Unicode の East Asian Width のうち、タイトルに出てくる主な範囲だけを見る。
+    nonisolated static func displayWidth(of character: Character) -> Int {
+        guard let scalar = character.unicodeScalars.first else { return 1 }
+        switch scalar.value {
+        case 0x1100...0x115F,   // ハングル字母
+             0x2E80...0x303E,   // CJK 部首・記号と句読点
+             0x3041...0x33FF,   // かな・CJK 互換
+             0x3400...0x4DBF,   // CJK 統合漢字拡張 A
+             0x4E00...0x9FFF,   // CJK 統合漢字
+             0xA960...0xA97F,   // ハングル字母拡張 A
+             0xAC00...0xD7A3,   // ハングル音節
+             0xF900...0xFAFF,   // CJK 互換漢字
+             0xFE30...0xFE4F,   // CJK 互換形
+             0xFF00...0xFF60,   // 全角英数・記号
+             0xFFE0...0xFFE6,   // 全角記号
+             0x1F300...0x1FAFF, // 絵文字
+             0x20000...0x3FFFD: // CJK 統合漢字拡張 B 以降
+            return 2
+        default:
+            return 1
+        }
     }
 
     /// 今日は「10:00」、前後 1 日は「昨日 18:00」「明日 9:00」、それ以外は「10/28 9:00」のように表示する。

@@ -1,16 +1,22 @@
 # AttentionBar
 
+[English](README.en.md)
+
 「今気づくべきこと」をメニューバーに表示する macOS アプリ。カレンダーの予定とリマインダーから、優先度の高い 1 件をメニューバーに、上位数件をポップアップに表示する。
 
 - 対応 OS: macOS 13 以降
 - 外部ライブラリなし（SwiftUI / EventKit / ServiceManagement）
 - ネットワーク通信なし。カレンダー・リマインダーは端末内で読むだけ（[プライバシーポリシー](PRIVACY.md)）
+- 日本語・英語に対応（macOS の言語設定に従う。日本語以外は英語）
 
 ## できること
 
 - 次の予定・期限までの残り時間をメニューバーに常時表示（例: `📅 次の予定まで12分`、開始後は `📅 定例会議 3分経過`）
-- クリックで上位数件を優先順に一覧表示。予定に会議 URL があればそこから開ける
-- 開始 5 分前（設定可）に通知。開始時刻には最前面のパネルまたは全画面で知らせる
+  - 2 時間以内の会議は、終了までの残り時間を表示（例: `📅 定例会議 残り27分`）
+- クリックで上位数件を優先順に一覧表示
+  - 予定に会議 URL（Zoom、Google Meet、Teams、Webex、Slack ハドルなど）があればそこから開ける
+  - リマインダーを完了にしたり、不要な予定を非表示にしたりできる
+- 開始 5 分前（設定可）に通知。開始時刻（30 秒〜2 分前にも設定可）には最前面のパネルまたは全画面で知らせる
 - 表示するカレンダーの選択、先読み時間・通知タイミングの設定、ログイン時の自動起動
 
 ## インストール
@@ -18,7 +24,7 @@
 1. [Releases](https://github.com/otaku1123/attention-bar/releases) から最新の `AttentionBar-<バージョン>.zip` をダウンロードし、ダブルクリックで展開する
 2. `AttentionBar.app` を `/Applications` に移動して起動する
 3. カレンダー・リマインダーへのアクセスを許可する
-4. 自動起動したい場合は、ポップアップの「ログイン時に起動」にチェックを入れる（`/Applications` に置いてから設定する）
+4. 自動起動したい場合は、ポップアップの「設定…」から「ログイン時に起動」をオンにする（`/Applications` に置いてから設定する）
 
 Developer ID で署名・公証済みなので、Gatekeeper の警告なしで起動できる。
 
@@ -74,7 +80,7 @@ scripts/release.sh
 ### 期待される結果
 
 - 最後に `source=Notarized Developer ID` と `完了: build/release/AttentionBar-<バージョン>.zip` が表示される
-- バージョンは Xcode の `MARKETING_VERSION`（現在 0.4.0）
+- バージョンは Xcode の `MARKETING_VERSION`（現在 0.4.1）
 
 ## TestFlight で配布
 
@@ -129,8 +135,8 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 ```bash
 git checkout main && git pull
 scripts/release.sh
-gh release create v0.4.0 build/release/AttentionBar-0.4.0.zip \
-    --target main --title "AttentionBar 0.4.0" --generate-notes
+gh release create v0.4.1 build/release/AttentionBar-0.4.1.zip \
+    --target main --title "AttentionBar 0.4.1" --generate-notes
 ```
 
 - `--generate-notes` は前回のタグ以降にマージされた PR からノートを自動生成する
