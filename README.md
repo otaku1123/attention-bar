@@ -12,12 +12,12 @@
 ## できること
 
 - 次の予定・期限までの残り時間をメニューバーに常時表示（例: `📅 次の予定まで12分`、開始後は `📅 定例会議 3分経過`）
-  - 2 時間以内の会議は、終了までの残り時間を表示（例: `📅 定例会議 残り27分`）
+  - 2 時間以内の会議は、終了までの残り時間を表示（例: `📅 定例会議 残り27分`）。終了直後に次の会議が続くときは、ポップアップで知らせる
 - クリックで上位数件を優先順に一覧表示
-  - 予定に会議 URL（Zoom、Google Meet、Teams、Webex、Slack ハドルなど）があればそこから開ける
-  - リマインダーを完了にしたり、不要な予定を非表示にしたりできる
+  - 予定に会議 URL（Zoom、Google Meet、Teams、Webex、Slack ハドルなど）があればそこから開ける。なければカレンダーアプリでその予定を開ける
+  - リマインダーを完了にしたり、期限を後にずらしたり（1 時間後・夕方・明日の朝）、不要な予定を非表示にしたりできる
 - 開始 5 分前（設定可）に通知。開始時刻（30 秒〜2 分前にも設定可）には最前面のパネルまたは全画面で知らせる
-- 表示するカレンダーの選択、先読み時間・通知タイミングの設定、ログイン時の自動起動
+- メニューバーの表示（タイトルと時間・時間だけ・アイコンだけ）、表示するカレンダーの選択、先読み時間・通知タイミングの設定、ログイン時の自動起動
 
 ## インストール
 
@@ -80,7 +80,7 @@ scripts/release.sh
 ### 期待される結果
 
 - 最後に `source=Notarized Developer ID` と `完了: build/release/AttentionBar-<バージョン>.zip` が表示される
-- バージョンは Xcode の `MARKETING_VERSION`（現在 0.4.1）
+- バージョンは Xcode の `MARKETING_VERSION`（現在 0.5.0）
 
 ## TestFlight で配布
 
@@ -135,8 +135,8 @@ TestFlight のビルドは 90 日で期限切れになるため、定期的に�
 ```bash
 git checkout main && git pull
 scripts/release.sh
-gh release create v0.4.1 build/release/AttentionBar-0.4.1.zip \
-    --target main --title "AttentionBar 0.4.1" --generate-notes
+gh release create v0.5.0 build/release/AttentionBar-0.5.0.zip \
+    --target main --title "AttentionBar 0.5.0" --generate-notes
 ```
 
 - `--generate-notes` は前回のタグ以降にマージされた PR からノートを自動生成する

@@ -111,6 +111,16 @@
         }
       }
     },
+    "%lld分経過" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldm ago"
+          }
+        }
+      }
+    },
     "%lld時間先まで" : {
       "localizations" : {
         "en" : {
@@ -147,6 +157,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(Untitled event)"
+          }
+        }
+      }
+    },
+    "1時間後" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In 1 Hour"
           }
         }
       }
@@ -262,6 +282,16 @@
         }
       }
     },
+    "アイコンだけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icon Only"
+          }
+        }
+      }
+    },
     "カスタム" : {
       "localizations" : {
         "en" : {
@@ -278,6 +308,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Calendars"
+          }
+        }
+      }
+    },
+    "カレンダーで開く" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Calendar"
           }
         }
       }
@@ -312,12 +352,32 @@
         }
       }
     },
+    "タイトルと時間" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title and Time"
+          }
+        }
+      }
+    },
     "パネル" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel"
+          }
+        }
+      }
+    },
+    "メニューバーの表示" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu Bar Display"
           }
         }
       }
@@ -422,6 +482,16 @@
         }
       }
     },
+    "今日の夕方" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Evening"
+          }
+        }
+      }
+    },
     "先読み時間" : {
       "localizations" : {
         "en" : {
@@ -442,12 +512,32 @@
         }
       }
     },
+    "参加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join"
+          }
+        }
+      }
+    },
     "完了にする" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mark as Done"
+          }
+        }
+      }
+    },
+    "後で" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
           }
         }
       }
@@ -462,6 +552,26 @@
         }
       }
     },
+    "明日の夕方" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow Evening"
+          }
+        }
+      }
+    },
+    "明日の朝" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow Morning"
+          }
+        }
+      }
+    },
     "昨日 %@" : {
       "localizations" : {
         "en" : {
@@ -472,12 +582,32 @@
         }
       }
     },
+    "時間だけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time Only"
+          }
+        }
+      }
+    },
     "最前面で知らせるタイミング" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alert on top"
+          }
+        }
+      }
+    },
+    "期限" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due"
           }
         }
       }
@@ -502,6 +632,32 @@
         }
       }
     },
+    "期限超過%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overdue %@"
+          }
+        }
+      }
+    },
+    "次: %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$@ %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "次: %1$@ %2$@"
+          }
+        }
+      }
+    },
     "次にやること" : {
       "localizations" : {
         "en" : {
@@ -518,6 +674,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next in %@"
+          }
+        }
+      }
+    },
+    "残り%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ left"
           }
         }
       }
@@ -638,6 +804,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open"
+          }
+        }
+      }
+    },
+    "開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now"
           }
         }
       }

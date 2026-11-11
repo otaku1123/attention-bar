@@ -12,12 +12,12 @@ A macOS menu bar app that shows what needs your attention right now. It picks th
 ## Features
 
 - Always shows the time until your next event or reminder in the menu bar (e.g. `📅 Next in 12m`)
-  - During a meeting of up to 2 hours, shows the time left until it ends (e.g. `📅 Weekly sync… 27m left`)
+  - During a meeting of up to 2 hours, shows the time left until it ends (e.g. `📅 Weekly sync… 27m left`). If another meeting starts right after, the popup tells you
 - Click to see the top items in priority order
-  - Join a meeting with one click when the event has a meeting URL (Zoom, Google Meet, Microsoft Teams, Webex, Slack huddles, and more)
-  - Mark reminders as done, or hide events you don't need to see
+  - Join a meeting with one click when the event has a meeting URL (Zoom, Google Meet, Microsoft Teams, Webex, Slack huddles, and more), or open the event in Calendar when it does not
+  - Mark reminders as done, snooze them (in 1 hour, this evening, or tomorrow morning), or hide events you don't need to see
 - Notifies you 5 minutes before an event starts (configurable), and alerts you on top of other windows at the start time with a panel or a full-screen overlay (optionally 30 seconds to 2 minutes early)
-- Choose which calendars to show, how far ahead to look, when to notify, and whether to launch at login
+- Choose what the menu bar shows (title and time, time only, or icon only), which calendars to show, how far ahead to look, when to notify, and whether to launch at login
 
 ## Installation
 

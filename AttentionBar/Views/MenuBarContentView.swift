@@ -45,6 +45,14 @@ struct MenuBarContentView: View {
                         Text("\(AttentionStore.dueText(item.dueAt, now: store.now))〜\(AttentionStore.dueText(endAt, now: store.now))")
                             .font(.callout)
                             .foregroundStyle(.secondary)
+                        // 会議が続くときは、終わる前に次の会議を知らせる（メニューバーは幅がないため出さない）
+                        if let next = store.followingItem {
+                            Text("次: \(AttentionStore.dueText(next.dueAt, now: store.now)) \(next.title)")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
                     } else {
                         let due = AttentionStore.dueText(item.dueAt, now: store.now)
                         Text(item.source == .reminder ? "期限: \(due)" : "開始: \(due)" as LocalizedStringKey)
@@ -58,6 +66,12 @@ struct MenuBarContentView: View {
                             } label: {
                                 Label("開く", systemImage: "arrow.up.right.square")
                             }
+                        } else if let url = item.calendarAppURL {
+                            Button {
+                                Self.openInCalendar(url)
+                            } label: {
+                                Label("カレンダーで開く", systemImage: "calendar")
+                            }
                         }
                         if item.isCompletable {
                             Button {
@@ -65,6 +79,12 @@ struct MenuBarContentView: View {
                             } label: {
                                 Label("完了にする", systemImage: "checkmark.circle")
                             }
+                            Menu {
+                                snoozeButtons(for: item)
+                            } label: {
+                                Label("後で", systemImage: "clock.arrow.circlepath")
+                            }
+                            .fixedSize()
                         }
                         if item.source == .calendar {
                             Button {
@@ -119,6 +139,11 @@ struct MenuBarContentView: View {
                                 store.hide(item)
                             }
                         }
+                        if item.isCompletable {
+                            Section("後で") {
+                                snoozeButtons(for: item)
+                            }
+                        }
                     }
                 }
             }
@@ -145,6 +170,22 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+    }
+
+    /// URL で開けなかったとき（macOS の変更で ical:// が使えなくなった場合など）は、カレンダーアプリを起動するだけにする。
+    private static func openInCalendar(_ url: URL) {
+        guard !NSWorkspace.shared.open(url),
+              let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.iCal") else { return }
+        NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
+    }
+
+    @ViewBuilder
+    private func snoozeButtons(for item: AttentionItem) -> some View {
+        ForEach(SnoozeOption.allCases, id: \.self) { option in
+            Button(option.displayName(now: store.now)) {
+                store.snooze(item, option)
+            }
+        }
     }
 }
 

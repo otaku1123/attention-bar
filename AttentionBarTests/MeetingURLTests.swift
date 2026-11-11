@@ -49,3 +49,21 @@ struct MeetingURLTests {
         #expect(CalendarProvider.meetingURL(in: "") == nil)
     }
 }
+
+struct CalendarAppURLTests {
+    @Test func singleEvent() {
+        let url = CalendarProvider.calendarAppURL(identifier: "ABC-123", occurrence: nil)
+        #expect(url?.absoluteString == "ical://ekevent/ABC-123?method=show&options=more")
+    }
+
+    @Test func recurringEventIncludesOccurrenceInUTC() {
+        // 2027-01-15 08:00:00 UTC
+        let url = CalendarProvider.calendarAppURL(identifier: "ABC-123", occurrence: Date(timeIntervalSince1970: 1_800_000_000))
+        #expect(url?.absoluteString == "ical://ekevent/20270115T080000Z/ABC-123?method=show&options=more")
+    }
+
+    @Test func escapesIdentifier() {
+        let url = CalendarProvider.calendarAppURL(identifier: "a/b:c", occurrence: nil)
+        #expect(url?.absoluteString == "ical://ekevent/a%2Fb:c?method=show&options=more")
+    }
+}

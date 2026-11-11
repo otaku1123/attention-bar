@@ -17,10 +17,29 @@ enum StartAlertStyle: String, CaseIterable {
     }
 }
 
+/// メニューバーに出す内容。会議中はインジケータが増えて幅が足りなくなるため、短くできるようにする（#72）。
+enum MenuBarStyle: String, CaseIterable {
+    /// 「📅 定例ミーティ… 残り27分」
+    case full
+    /// 「📅 残り27分」
+    case timeOnly
+    /// 「📅」
+    case iconOnly
+
+    var displayName: String {
+        switch self {
+        case .full: String(localized: "タイトルと時間")
+        case .timeOnly: String(localized: "時間だけ")
+        case .iconOnly: String(localized: "アイコンだけ")
+        }
+    }
+}
+
 /// ユーザーが変更できる設定。UserDefaults に保存する。
 @MainActor
 final class AppSettings: ObservableObject {
     private enum Key {
+        static let menuBarStyle = "menuBarStyle"
         static let gracePeriodMinutes = "gracePeriodMinutes"
         static let lookaheadHours = "lookaheadHours"
         static let notificationLeadMinutes = "notificationLeadMinutes"
@@ -42,6 +61,10 @@ final class AppSettings: ObservableObject {
     static let notificationLeadChoices = [0, 1, 5, 10, 15]
     /// 0 は開始時刻ちょうど。
     static let startAlertLeadChoices = [0, 30, 60, 120]
+
+    @Published var menuBarStyle: MenuBarStyle {
+        didSet { defaults.set(menuBarStyle.rawValue, forKey: Key.menuBarStyle) }
+    }
 
     /// 予定の開始後も表示を残す時間（分）。
     @Published var gracePeriodMinutes: Int {
@@ -82,6 +105,7 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        menuBarStyle = defaults.string(forKey: Key.menuBarStyle).flatMap(MenuBarStyle.init(rawValue:)) ?? .full
         gracePeriodMinutes = defaults.object(forKey: Key.gracePeriodMinutes) as? Int ?? 10
         lookaheadHours = defaults.object(forKey: Key.lookaheadHours) as? Int ?? 24
         notificationLeadMinutes = defaults.object(forKey: Key.notificationLeadMinutes) as? Int ?? 5

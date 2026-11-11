@@ -217,3 +217,37 @@ struct OngoingEventTests {
         #expect(select(items, at: 30 * minute) == "定例")
     }
 }
+
+struct FollowingEventTests {
+    private func meeting(_ title: String, at offset: TimeInterval, minutes: TimeInterval = 30) -> AttentionItem {
+        AttentionItem(title: title, dueAt: now(offset), priority: 1, source: .calendar, actionURL: nil, endAt: now(offset + minutes * minute))
+    }
+
+    private func following(_ current: AttentionItem, _ items: [AttentionItem]) -> String? {
+        PriorityEngine.followingEvent(after: current, in: [current] + items)?.title
+    }
+
+    @Test func findsMeetingStartingWithinFiveMinutesOfEnd() {
+        let current = meeting("定例", at: 0)
+        #expect(following(current, [meeting("1on1", at: 30 * minute)]) == "1on1")
+        #expect(following(current, [meeting("1on1", at: 35 * minute)]) == "1on1")
+        #expect(following(current, [meeting("1on1", at: 36 * minute)]) == nil)
+    }
+
+    @Test func picksEarliestIncludingOverlap() {
+        let current = meeting("定例", at: 0)
+        let items = [meeting("1on1", at: 30 * minute), meeting("割り込み", at: 25 * minute)]
+        #expect(following(current, items) == "割り込み")
+    }
+
+    @Test func ignoresRemindersAndUntrackedEvents() {
+        #expect(following(meeting("定例", at: 0), [item("提出", at: 30 * minute, source: .reminder)]) == nil)
+        // 2 時間を超える予定は終了まで表示しないため、次の会議も知らせない
+        #expect(following(meeting("作業", at: 0, minutes: 180), [meeting("1on1", at: 180 * minute)]) == nil)
+    }
+
+    @Test func ignoresSameMeetingInAnotherCalendar() {
+        let current = meeting("定例", at: 0)
+        #expect(following(current, [meeting("定例", at: 0)]) == nil)
+    }
+}
