@@ -66,7 +66,11 @@ final class CalendarProvider: AttentionProvider {
                     priority: 1,
                     source: .calendar,
                     actionURL: actionURL(for: event),
-                    endAt: event.endDate
+                    endAt: event.endDate,
+                    calendarAppURL: Self.calendarAppURL(
+                        identifier: event.calendarItemIdentifier,
+                        occurrence: event.hasRecurrenceRules ? event.startDate : nil
+                    )
                 )
             }
     }
@@ -140,6 +144,21 @@ final class CalendarProvider: AttentionProvider {
         }
         let text = [event.location, event.notes].compactMap { $0 }.joined(separator: "\n")
         return Self.meetingURL(in: text)
+    }
+
+    /// カレンダーアプリで予定を開く URL（ical://ekevent/）。公開された仕様ではないが、他のメニューバーアプリでも使われている。
+    /// 繰り返しの予定は ID だけだと初回が開くため、その回の開始時刻（UTC）を付ける。
+    static func calendarAppURL(identifier: String, occurrence: Date?) -> URL? {
+        guard let id = identifier.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(CharacterSet(charactersIn: "/"))) else { return nil }
+        var path = id
+        if let occurrence {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")
+            formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+            path = formatter.string(from: occurrence) + "/" + id
+        }
+        return URL(string: "ical://ekevent/\(path)?method=show&options=more")
     }
 
     /// テキスト中で最初に現れる会議 URL。
