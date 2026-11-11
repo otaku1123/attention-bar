@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import AppKit
 
 /// カレンダーの予定の開始前にローカル通知を出す。
 ///
@@ -8,12 +9,18 @@ import UserNotifications
 @MainActor
 final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
     private nonisolated static let identifierPrefix = "attention."
+    /// 会議 URL がある予定の通知に「参加」ボタンを付けるためのカテゴリ（#71）。
+    private nonisolated static let meetingCategory = "attention.meeting"
+    private nonisolated static let joinAction = "attention.join"
+    private nonisolated static let urlKey = "url"
 
     struct Plan: Equatable {
         let identifier: String
         let title: String
         let body: String
         let fireDate: Date
+        /// 「参加」ボタンで開く会議 URL。nil ならボタンを付けない。
+        var url: URL? = nil
     }
 
     private let center = UNUserNotificationCenter.current()
@@ -21,6 +28,10 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
     override init() {
         super.init()
         center.delegate = self
+        let join = UNNotificationAction(identifier: Self.joinAction, title: String(localized: "参加"))
+        center.setNotificationCategories([
+            UNNotificationCategory(identifier: Self.meetingCategory, actions: [join], intentIdentifiers: [])
+        ])
     }
 
     /// leadTime が 0 以下なら通知しない（予約済みの通知も取り消す）。
@@ -52,6 +63,10 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
             content.title = plan.title
             content.body = plan.body
             content.sound = .default
+            if let url = plan.url {
+                content.categoryIdentifier = Self.meetingCategory
+                content.userInfo = [Self.urlKey: url.absoluteString]
+            }
             let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: plan.fireDate)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             do {
@@ -75,7 +90,8 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
                     identifier: "\(identifierPrefix)\(item.source).\(Int(item.dueAt.timeIntervalSince1970)).\(item.title)",
                     title: item.title,
                     body: localization.string("\(Int(leadTime / 60))分後に開始（\(time)）"),
-                    fireDate: fireDate
+                    fireDate: fireDate,
+                    url: item.actionURL
                 )
             }
     }
@@ -86,5 +102,16 @@ final class NotificationScheduler: NSObject, UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner, .sound]
+    }
+
+    /// 「参加」ボタンが押されたら会議 URL を開く。通知本体のクリックでは何もしない。
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        guard response.actionIdentifier == Self.joinAction,
+              let string = response.notification.request.content.userInfo[Self.urlKey] as? String,
+              let url = URL(string: string) else { return }
+        await MainActor.run { _ = NSWorkspace.shared.open(url) }
     }
 }

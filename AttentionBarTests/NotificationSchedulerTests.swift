@@ -44,6 +44,13 @@ struct NotificationPlanTests {
         #expect(plans.first?.body.hasPrefix("10分後に開始") == true)
     }
 
+    @Test func carriesMeetingURLForJoinButton() {
+        let url = URL(string: "https://meet.google.com/abc-defg-hij")!
+        let meeting = AttentionItem(title: "会議", dueAt: now(30 * minute), priority: 1, source: .calendar, actionURL: url)
+        #expect(plan([meeting], at: 0).first?.url == url)
+        #expect(plan([item("会議", at: 30 * minute)], at: 0).first?.url == nil)
+    }
+
     @Test func bodyInEnglish() {
         let plans = plan([item("Standup", at: 30 * minute)], at: 0, leadTime: 10 * minute, localization: english)
         #expect(plans.first?.body.hasPrefix("Starts in 10 min (") == true)

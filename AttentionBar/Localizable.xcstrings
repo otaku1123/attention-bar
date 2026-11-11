@@ -442,6 +442,16 @@
         }
       }
     },
+    "参加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join"
+          }
+        }
+      }
+    },
     "完了にする" : {
       "localizations" : {
         "en" : {
