@@ -2,7 +2,7 @@ import Foundation
 import EventKit
 
 enum ReminderProviderError: Error {
-    /// 完了しようとしたリマインダーが見つからない（別の端末で削除された場合など）。
+    /// 完了・期限変更しようとしたリマインダーが見つからない（別の端末で削除された場合など）。
     case notFound
 }
 
@@ -65,6 +65,27 @@ final class ReminderProvider: AttentionProvider {
             throw ReminderProviderError.notFound
         }
         reminder.isCompleted = true
+        try store.save(reminder, commit: true)
+    }
+
+    /// リマインダーの期限を date に変更する。期限と同じ時刻の通知も一緒に動かし、新しい期限に Reminders が知らせるようにする。
+    func snooze(id: String, to date: Date) throws {
+        guard let reminder = store.calendarItem(withIdentifier: id) as? EKReminder else {
+            throw ReminderProviderError.notFound
+        }
+        let old = reminder.dueDateComponents
+        // 期限のタイムゾーン（未指定なら端末の時刻に従う）を保ったまま書き換える
+        var calendar = Calendar.current
+        if let timeZone = old?.timeZone {
+            calendar.timeZone = timeZone
+        }
+        let oldDue = old.flatMap { calendar.date(from: $0) }
+        var components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        components.timeZone = old?.timeZone
+        reminder.dueDateComponents = components
+        for alarm in reminder.alarms ?? [] where alarm.absoluteDate != nil && alarm.absoluteDate == oldDue {
+            alarm.absoluteDate = calendar.date(from: components)
+        }
         try store.save(reminder, commit: true)
     }
 

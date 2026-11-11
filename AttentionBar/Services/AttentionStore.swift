@@ -124,6 +124,18 @@ final class AttentionStore: ObservableObject {
         }
     }
 
+    /// リマインダーの期限をずらす。保存後の変更通知で新しい期限のものを取り直すため、それまでは一覧から消しておく。
+    func snooze(_ item: AttentionItem, _ option: SnoozeOption) {
+        guard item.source == .reminder, let id = item.sourceID else { return }
+        items.removeAll { $0.source == .reminder && $0.sourceID == id }
+        do {
+            try reminderProvider.snooze(id: id, to: option.date(from: Date()))
+        } catch {
+            print("[AttentionStore] snooze failed: \(error)")
+            scheduleReload()
+        }
+    }
+
     /// 優先順に並べた表示対象。先頭がメニューバーに出す 1 件。
     var rankedItems: [AttentionItem] {
         Array(PriorityEngine.ranked(from: items, now: now, gracePeriod: settings.gracePeriod).prefix(Self.listLimit))
