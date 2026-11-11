@@ -17,7 +17,7 @@ A macOS menu bar app that shows what needs your attention right now. It picks th
   - Join a meeting with one click when the event has a meeting URL (Zoom, Google Meet, Microsoft Teams, Webex, Slack huddles, and more)
   - Mark reminders as done, or hide events you don't need to see
 - Notifies you 5 minutes before an event starts (configurable), and alerts you on top of other windows at the start time with a panel or a full-screen overlay (optionally 30 seconds to 2 minutes early)
-- Choose which calendars to show, how far ahead to look, when to notify, and whether to launch at login
+- Choose what the menu bar shows (title and time, time only, or icon only), which calendars to show, how far ahead to look, when to notify, and whether to launch at login
 
 ## Installation
 
