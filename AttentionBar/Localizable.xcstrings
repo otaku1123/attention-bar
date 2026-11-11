@@ -161,6 +161,16 @@
         }
       }
     },
+    "1時間後" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In 1 Hour"
+          }
+        }
+      }
+    },
     "2時間以内の予定は、終了まで残り時間を表示します（次の予定が15分以内に迫ったら切り替えます）。" : {
       "localizations" : {
         "en" : {
@@ -462,6 +472,16 @@
         }
       }
     },
+    "今日の夕方" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Evening"
+          }
+        }
+      }
+    },
     "先読み時間" : {
       "localizations" : {
         "en" : {
@@ -502,12 +522,42 @@
         }
       }
     },
+    "後で" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "明日 %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tomorrow %@"
+          }
+        }
+      }
+    },
+    "明日の夕方" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow Evening"
+          }
+        }
+      }
+    },
+    "明日の朝" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow Morning"
           }
         }
       }

@@ -65,6 +65,12 @@ struct MenuBarContentView: View {
                             } label: {
                                 Label("完了にする", systemImage: "checkmark.circle")
                             }
+                            Menu {
+                                snoozeButtons(for: item)
+                            } label: {
+                                Label("後で", systemImage: "clock.arrow.circlepath")
+                            }
+                            .fixedSize()
                         }
                         if item.source == .calendar {
                             Button {
@@ -119,6 +125,11 @@ struct MenuBarContentView: View {
                                 store.hide(item)
                             }
                         }
+                        if item.isCompletable {
+                            Section("後で") {
+                                snoozeButtons(for: item)
+                            }
+                        }
                     }
                 }
             }
@@ -145,6 +156,15 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+    }
+
+    @ViewBuilder
+    private func snoozeButtons(for item: AttentionItem) -> some View {
+        ForEach(SnoozeOption.allCases, id: \.self) { option in
+            Button(option.displayName(now: store.now)) {
+                store.snooze(item, option)
+            }
+        }
     }
 }
 
