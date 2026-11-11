@@ -66,6 +66,12 @@ struct MenuBarContentView: View {
                             } label: {
                                 Label("開く", systemImage: "arrow.up.right.square")
                             }
+                        } else if let url = item.calendarAppURL {
+                            Button {
+                                Self.openInCalendar(url)
+                            } label: {
+                                Label("カレンダーで開く", systemImage: "calendar")
+                            }
                         }
                         if item.isCompletable {
                             Button {
@@ -164,6 +170,13 @@ struct MenuBarContentView: View {
         }
         .padding(16)
         .frame(width: 260)
+    }
+
+    /// URL で開けなかったとき（macOS の変更で ical:// が使えなくなった場合など）は、カレンダーアプリを起動するだけにする。
+    private static func openInCalendar(_ url: URL) {
+        guard !NSWorkspace.shared.open(url),
+              let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.iCal") else { return }
+        NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration())
     }
 
     @ViewBuilder

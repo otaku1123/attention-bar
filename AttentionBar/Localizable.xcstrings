@@ -312,6 +312,16 @@
         }
       }
     },
+    "カレンダーで開く" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Calendar"
+          }
+        }
+      }
+    },
     "カレンダーを取得できません。カレンダーへのアクセスを許可してください。" : {
       "localizations" : {
         "en" : {
