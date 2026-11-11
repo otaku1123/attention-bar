@@ -111,6 +111,16 @@
         }
       }
     },
+    "%lld分経過" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldm ago"
+          }
+        }
+      }
+    },
     "%lld時間先まで" : {
       "localizations" : {
         "en" : {
@@ -262,6 +272,16 @@
         }
       }
     },
+    "アイコンだけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icon Only"
+          }
+        }
+      }
+    },
     "カスタム" : {
       "localizations" : {
         "en" : {
@@ -312,12 +332,32 @@
         }
       }
     },
+    "タイトルと時間" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title and Time"
+          }
+        }
+      }
+    },
     "パネル" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel"
+          }
+        }
+      }
+    },
+    "メニューバーの表示" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu Bar Display"
           }
         }
       }
@@ -482,12 +522,32 @@
         }
       }
     },
+    "時間だけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time Only"
+          }
+        }
+      }
+    },
     "最前面で知らせるタイミング" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alert on top"
+          }
+        }
+      }
+    },
+    "期限" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due"
           }
         }
       }
@@ -512,6 +572,16 @@
         }
       }
     },
+    "期限超過%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overdue %@"
+          }
+        }
+      }
+    },
     "次にやること" : {
       "localizations" : {
         "en" : {
@@ -528,6 +598,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next in %@"
+          }
+        }
+      }
+    },
+    "残り%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ left"
           }
         }
       }
@@ -648,6 +728,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open"
+          }
+        }
+      }
+    },
+    "開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now"
           }
         }
       }

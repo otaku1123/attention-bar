@@ -18,6 +18,11 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("表示") {
+                Picker("メニューバーの表示", selection: $settings.menuBarStyle) {
+                    ForEach(MenuBarStyle.allCases, id: \.self) { style in
+                        Text(style.displayName).tag(style)
+                    }
+                }
                 Picker("予定の開始後も表示する時間", selection: $settings.gracePeriodMinutes) {
                     ForEach(AppSettings.gracePeriodChoices, id: \.self) { minutes in
                         Text(minutes == 0 ? "表示しない" : "\(minutes)分" as LocalizedStringKey).tag(minutes)

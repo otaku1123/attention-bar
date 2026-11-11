@@ -3,8 +3,8 @@ import Testing
 @testable import AttentionBar
 
 struct MenuBarTitleTests {
-    private func title(_ item: AttentionItem?, denied: Set<AttentionSource> = [], at offset: TimeInterval, localization: Localization = japanese) -> String {
-        AttentionStore.menuBarTitle(item: item, deniedSources: denied, now: now(offset), localization: localization)
+    private func title(_ item: AttentionItem?, denied: Set<AttentionSource> = [], at offset: TimeInterval, style: MenuBarStyle = .full, localization: Localization = japanese) -> String {
+        AttentionStore.menuBarTitle(item: item, deniedSources: denied, now: now(offset), style: style, localization: localization)
     }
 
     @Test func showsNoItem() {
@@ -56,6 +56,38 @@ struct MenuBarTitleTests {
     @Test func truncatesLongTitleAfterStart() {
         let long = item("【確認用】猶予時間の切り替えテスト予定", at: 0)
         #expect(title(long, at: 60) == "📅 【確認用】猶… 1分経過")
+    }
+
+    @Test func timeOnlyOmitsTitle() {
+        let reminder = item("牛乳を買う", at: 0, source: .reminder)
+        let meeting = AttentionItem(title: "定例ミーティング", dueAt: now(0), priority: 1, source: .calendar, actionURL: nil, endAt: now(30 * 60))
+        #expect(title(item(at: 12 * 60), at: 0, style: .timeOnly) == "📅 12分")
+        #expect(title(meeting, at: 3 * 60, style: .timeOnly) == "📅 残り27分")
+        #expect(title(item(at: 0), at: 30, style: .timeOnly) == "📅 開始")
+        #expect(title(item(at: 0), at: 3 * 60, style: .timeOnly) == "📅 3分経過")
+        #expect(title(reminder, at: -5 * 60, style: .timeOnly) == "✅ 5分")
+        #expect(title(reminder, at: 30, style: .timeOnly) == "✅ 期限")
+        #expect(title(reminder, at: 2 * 60, style: .timeOnly) == "✅ 期限超過2分")
+        // 時間がないときは通常と同じ
+        #expect(title(nil, at: 0, style: .timeOnly) == "📅 予定なし")
+        #expect(title(nil, denied: [.reminder], at: 0, style: .timeOnly) == "✅ リマインダー権限なし")
+    }
+
+    @Test func iconOnlyShowsEmoji() {
+        #expect(title(item(at: 12 * 60), at: 0, style: .iconOnly) == "📅")
+        #expect(title(item("牛乳を買う", at: 0, source: .reminder), at: 30, style: .iconOnly) == "✅")
+        #expect(title(nil, at: 0, style: .iconOnly) == "📅")
+        #expect(title(nil, denied: [.reminder], at: 0, style: .iconOnly) == "✅")
+    }
+
+    @Test func timeOnlyInEnglish() {
+        let meeting = AttentionItem(title: "Sync", dueAt: now(0), priority: 1, source: .calendar, actionURL: nil, endAt: now(30 * 60))
+        #expect(title(item(at: 80 * 60), at: 0, style: .timeOnly, localization: english) == "📅 1h 20m")
+        #expect(title(meeting, at: 3 * 60, style: .timeOnly, localization: english) == "📅 27m left")
+        #expect(title(item(at: 0), at: 30, style: .timeOnly, localization: english) == "📅 Now")
+        #expect(title(item(at: 0), at: 3 * 60, style: .timeOnly, localization: english) == "📅 3m ago")
+        #expect(title(item("Milk", at: 0, source: .reminder), at: 30, style: .timeOnly, localization: english) == "✅ Due")
+        #expect(title(item("Milk", at: 0, source: .reminder), at: 2 * 60, style: .timeOnly, localization: english) == "✅ Overdue 2m")
     }
 
     @Test func showsInEnglish() {
