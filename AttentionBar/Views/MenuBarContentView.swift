@@ -45,6 +45,14 @@ struct MenuBarContentView: View {
                         Text("\(AttentionStore.dueText(item.dueAt, now: store.now))〜\(AttentionStore.dueText(endAt, now: store.now))")
                             .font(.callout)
                             .foregroundStyle(.secondary)
+                        // 会議が続くときは、終わる前に次の会議を知らせる（メニューバーは幅がないため出さない）
+                        if let next = store.followingItem {
+                            Text("次: \(AttentionStore.dueText(next.dueAt, now: store.now)) \(next.title)")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
                     } else {
                         let due = AttentionStore.dueText(item.dueAt, now: store.now)
                         Text(item.source == .reminder ? "期限: \(due)" : "開始: \(due)" as LocalizedStringKey)
