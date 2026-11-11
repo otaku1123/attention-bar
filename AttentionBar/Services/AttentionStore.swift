@@ -152,6 +152,11 @@ final class AttentionStore: ObservableObject {
         rankedItems.first
     }
 
+    /// 表示中の会議のすぐ後に続く会議。ポップアップで「次: 10:30 1on1」と知らせる（#74）。
+    var followingItem: AttentionItem? {
+        item.flatMap { PriorityEngine.followingEvent(after: $0, in: items) }
+    }
+
     var menuBarTitle: String {
         Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now, style: settings.menuBarStyle)
     }

@@ -16,6 +16,8 @@ enum PriorityEngine {
     static let trackedDurationLimit: TimeInterval = 2 * 60 * 60
     /// 開始までこの時間以内の予定は、期限切れリマインダーより優先する。
     static let imminentWindow: TimeInterval = 15 * 60
+    /// 終了からこの時間以内に始まる予定を、続けて始まる次の会議として知らせる（#74）。
+    static let backToBackWindow: TimeInterval = 5 * 60
     /// 期限切れリマインダーを表示し続ける上限。放置された古いリマインダーが表示を占拠しないようにする。
     static let overdueLimit: TimeInterval = 24 * 60 * 60
 
@@ -75,6 +77,14 @@ enum PriorityEngine {
         guard item.source == .calendar, let endAt = item.endAt else { return false }
         let duration = endAt.timeIntervalSince(item.dueAt)
         return duration > 0 && duration <= trackedDurationLimit
+    }
+
+    /// 終了まで表示する予定の終了前後に続けて始まる次の予定。終了前に始まる重なった予定も含め、いちばん早いものを返す。
+    static func followingEvent(after item: AttentionItem, in items: [AttentionItem]) -> AttentionItem? {
+        guard tracksUntilEnd(item), let endAt = item.endAt else { return nil }
+        return deduplicated(items)
+            .filter { $0.source == .calendar && $0.dueAt > item.dueAt && $0.dueAt <= endAt.addingTimeInterval(backToBackWindow) }
+            .min { $0.dueAt < $1.dueAt }
     }
 
     /// アイテムの優先段。表示対象外なら nil。

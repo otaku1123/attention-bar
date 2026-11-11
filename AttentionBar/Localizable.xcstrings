@@ -632,6 +632,22 @@
         }
       }
     },
+    "次: %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next: %1$@ %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "次: %1$@ %2$@"
+          }
+        }
+      }
+    },
     "次にやること" : {
       "localizations" : {
         "en" : {
