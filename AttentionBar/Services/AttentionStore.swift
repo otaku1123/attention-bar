@@ -40,6 +40,8 @@ final class AttentionStore: ObservableObject {
 
         // objectWillChange は値の変更前に届くが、再取得は 0.5 秒後なので新しい値で取得できる
         settingsObserver = settings.objectWillChange.sink { [weak self] in
+            // メニューバーの表示形式の変更を再取得を待たずに反映する
+            self?.objectWillChange.send()
             self?.scheduleReload()
         }
 
@@ -139,43 +141,49 @@ final class AttentionStore: ObservableObject {
     }
 
     var menuBarTitle: String {
-        Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now)
+        Self.menuBarTitle(item: item, deniedSources: deniedSources, now: now, style: settings.menuBarStyle)
     }
 
-    nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date, localization: Localization = .current) -> String {
+    nonisolated static func menuBarTitle(item: AttentionItem?, deniedSources: Set<AttentionSource>, now: Date, style: MenuBarStyle = .full, localization: Localization = .current) -> String {
         let l = localization
         guard let item else {
             // 他ソースのアイテムがあればそちらを優先し、何もないときだけ権限不足を表示する
             if let source = deniedSources.first {
-                return "\(source.emoji) " + l.string("\(source.displayName(l))権限なし")
+                return style == .iconOnly ? source.emoji : "\(source.emoji) " + l.string("\(source.displayName(l))権限なし")
             }
-            return "📅 " + l.string("予定なし")
+            return style == .iconOnly ? "📅" : "📅 " + l.string("予定なし")
         }
         let emoji = item.source.emoji
+        guard style != .iconOnly else { return emoji }
         let minutes = item.minutesRemaining(from: now)
         if minutes <= 0 {
             // minutesRemaining は切り上げなので、符号反転すると経過分数（切り捨て）になる
             let elapsed = -minutes
-            let title = truncated(item.title, maxWidth: menuBarTitleMaxWidth)
+            // 時間だけのときはタイトルを省き、「残り27分」のように状態だけを出す
+            let title = style == .full ? truncated(item.title, maxWidth: menuBarTitleMaxWidth) : nil
             switch item.source {
             case .reminder:
                 if elapsed == 0 {
-                    return "\(emoji) " + l.string("\(title) 期限")
+                    return "\(emoji) " + (title.map { l.string("\($0) 期限") } ?? l.string("期限"))
                 }
-                return "\(emoji) " + l.string("\(title) 期限超過\(durationText(minutes: elapsed, localization: l))")
+                let duration = durationText(minutes: elapsed, localization: l)
+                return "\(emoji) " + (title.map { l.string("\($0) 期限超過\(duration)") } ?? l.string("期限超過\(duration)"))
             default:
                 if PriorityEngine.tracksUntilEnd(item), let endAt = item.endAt, endAt > now {
                     // 切り上げのため、残り 30 秒は「残り1分」
-                    let remaining = Int(ceil(endAt.timeIntervalSince(now) / 60))
-                    return "\(emoji) " + l.string("\(title) 残り\(durationText(minutes: remaining, localization: l))")
+                    let remaining = durationText(minutes: Int(ceil(endAt.timeIntervalSince(now) / 60)), localization: l)
+                    return "\(emoji) " + (title.map { l.string("\($0) 残り\(remaining)") } ?? l.string("残り\(remaining)"))
                 }
                 if elapsed == 0 {
-                    return "\(emoji) " + l.string("\(title) 開始")
+                    return "\(emoji) " + (title.map { l.string("\($0) 開始") } ?? l.string("開始"))
                 }
-                return "\(emoji) " + l.string("\(title) \(elapsed)分経過")
+                return "\(emoji) " + (title.map { l.string("\($0) \(elapsed)分経過") } ?? l.string("\(elapsed)分経過"))
             }
         }
         let duration = durationText(minutes: minutes, localization: l)
+        if style == .timeOnly {
+            return "\(emoji) \(duration)"
+        }
         return "\(emoji) " + (item.source == .reminder ? l.string("期限まで\(duration)") : l.string("次の予定まで\(duration)"))
     }
 
